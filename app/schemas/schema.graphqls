@@ -1,1 +1,15 @@
 scalar Time
+
+type Response {
+    message: String!
+    status: Int!
+    data: Data
+}
+
+type ListResponse {
+    message: String!
+    status: Int!
+    data: [Data]
+}
+
+union Data = Answer | Question | QuestionOption

@@ -1,27 +1,26 @@
-package persistences
+package answers
 
 import (
 	"errors"
 
 	"github.com/jinzhu/gorm"
-	"github.com/khoirulhasin/globe_tracker_api/app/domains/repositories/answers"
 	"github.com/khoirulhasin/globe_tracker_api/app/models"
 )
 
-type ansService struct {
+type ansRepository struct {
 	db *gorm.DB
 }
 
-func NewAnswer(db *gorm.DB) *ansService {
-	return &ansService{
+func NewAnswerRepository(db *gorm.DB) *ansRepository {
+	return &ansRepository{
 		db,
 	}
 }
 
 // We implement the interface defined in the domain
-var _ answers.AnsService = &ansService{}
+var _ AnsRepository = &ansRepository{}
 
-func (s *ansService) CreateAnswer(answer *models.Answer) (*models.Answer, error) {
+func (s *ansRepository) CreateAnswer(answer *models.Answer) (*models.Answer, error) {
 
 	//first we need to check if the ans have been entered for this question:
 	oldAns, _ := s.GetAllQuestionAnswers(answer.QuestionID)
@@ -42,7 +41,7 @@ func (s *ansService) CreateAnswer(answer *models.Answer) (*models.Answer, error)
 	return answer, nil
 }
 
-func (s *ansService) UpdateAnswer(answer *models.Answer) (*models.Answer, error) {
+func (s *ansRepository) UpdateAnswer(answer *models.Answer) (*models.Answer, error) {
 
 	err := s.db.Save(&answer).Error
 	if err != nil {
@@ -53,7 +52,7 @@ func (s *ansService) UpdateAnswer(answer *models.Answer) (*models.Answer, error)
 
 }
 
-func (s *ansService) DeleteAnswer(id string) error {
+func (s *ansRepository) DeleteAnswer(id string) error {
 
 	ans := &models.Answer{}
 
@@ -66,7 +65,7 @@ func (s *ansService) DeleteAnswer(id string) error {
 
 }
 
-func (s *ansService) GetAnswerByID(id string) (*models.Answer, error) {
+func (s *ansRepository) GetAnswerByID(id string) (*models.Answer, error) {
 
 	var ans = &models.Answer{}
 
@@ -78,7 +77,7 @@ func (s *ansService) GetAnswerByID(id string) (*models.Answer, error) {
 	return ans, nil
 }
 
-func (s *ansService) GetAllQuestionAnswers(questionId string) ([]*models.Answer, error) {
+func (s *ansRepository) GetAllQuestionAnswers(questionId string) ([]*models.Answer, error) {
 
 	var answers []*models.Answer
 
@@ -88,5 +87,18 @@ func (s *ansService) GetAllQuestionAnswers(questionId string) ([]*models.Answer,
 	}
 
 	return answers, nil
+
+}
+
+func (s *ansRepository) GetQuestionOptionByID(id string) (*models.QuestionOption, error) {
+
+	quesOpt := &models.QuestionOption{}
+
+	err := s.db.Where("id = ?", id).Take(&quesOpt).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return quesOpt, nil
 
 }

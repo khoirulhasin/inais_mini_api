@@ -2,7 +2,7 @@ package questions
 
 import "github.com/khoirulhasin/globe_tracker_api/app/models"
 
-type QuesService interface {
+type QuesRepository interface {
 	CreateQuestion(question *models.Question) (*models.Question, error)
 	UpdateQuestion(question *models.Question) (*models.Question, error)
 	DeleteQuestion(id string) error

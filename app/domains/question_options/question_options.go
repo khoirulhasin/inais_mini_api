@@ -2,7 +2,7 @@ package question_options
 
 import "github.com/khoirulhasin/globe_tracker_api/app/models"
 
-type OptService interface {
+type OptRepository interface {
 	CreateQuestionOption(question *models.QuestionOption) (*models.QuestionOption, error)
 	UpdateQuestionOption(question *models.QuestionOption) (*models.QuestionOption, error)
 	DeleteQuestionOption(id string) error

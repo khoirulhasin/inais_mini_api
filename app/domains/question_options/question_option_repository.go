@@ -1,27 +1,26 @@
-package persistences
+package question_options
 
 import (
 	"errors"
 
 	"github.com/jinzhu/gorm"
-	"github.com/khoirulhasin/globe_tracker_api/app/domains/repositories/question_options"
 	"github.com/khoirulhasin/globe_tracker_api/app/models"
 )
 
-type optService struct {
+type optRepository struct {
 	db *gorm.DB
 }
 
-func NewQuestionOption(db *gorm.DB) *optService {
-	return &optService{
+func NewQuestionOptionRepository(db *gorm.DB) *optRepository {
+	return &optRepository{
 		db,
 	}
 }
 
 // We implement the interface defined in the domain
-var _ question_options.OptService = &optService{}
+var _ OptRepository = &optRepository{}
 
-func (s *optService) CreateQuestionOption(questOpt *models.QuestionOption) (*models.QuestionOption, error) {
+func (s *optRepository) CreateQuestionOption(questOpt *models.QuestionOption) (*models.QuestionOption, error) {
 
 	//check if this question option title or the position or the correctness already exist for the question
 	oldOpts, _ := s.GetQuestionOptionByQuestionID(questOpt.QuestionID)
@@ -41,7 +40,7 @@ func (s *optService) CreateQuestionOption(questOpt *models.QuestionOption) (*mod
 	return questOpt, nil
 }
 
-func (s *optService) UpdateQuestionOption(questOpt *models.QuestionOption) (*models.QuestionOption, error) {
+func (s *optRepository) UpdateQuestionOption(questOpt *models.QuestionOption) (*models.QuestionOption, error) {
 
 	err := s.db.Save(&questOpt).Error
 	if err != nil {
@@ -52,7 +51,7 @@ func (s *optService) UpdateQuestionOption(questOpt *models.QuestionOption) (*mod
 
 }
 
-func (s *optService) DeleteQuestionOption(id string) error {
+func (s *optRepository) DeleteQuestionOption(id string) error {
 
 	err := s.db.Delete(id).Error
 	if err != nil {
@@ -62,7 +61,7 @@ func (s *optService) DeleteQuestionOption(id string) error {
 	return nil
 }
 
-func (s *optService) DeleteQuestionOptionByQuestionID(questId string) error {
+func (s *optRepository) DeleteQuestionOptionByQuestionID(questId string) error {
 
 	err := s.db.Delete(questId).Error
 	if err != nil {
@@ -72,7 +71,7 @@ func (s *optService) DeleteQuestionOptionByQuestionID(questId string) error {
 	return nil
 }
 
-func (s *optService) GetQuestionOptionByID(id string) (*models.QuestionOption, error) {
+func (s *optRepository) GetQuestionOptionByID(id string) (*models.QuestionOption, error) {
 
 	quesOpt := &models.QuestionOption{}
 
@@ -85,7 +84,7 @@ func (s *optService) GetQuestionOptionByID(id string) (*models.QuestionOption, e
 
 }
 
-func (s *optService) GetQuestionOptionByQuestionID(id string) ([]*models.QuestionOption, error) {
+func (s *optRepository) GetQuestionOptionByQuestionID(id string) ([]*models.QuestionOption, error) {
 
 	var quesOpts []*models.QuestionOption
 

@@ -1,28 +1,27 @@
-package persistences
+package questions
 
 import (
 	"errors"
 	"strings"
 
 	"github.com/jinzhu/gorm"
-	"github.com/khoirulhasin/globe_tracker_api/app/domains/repositories/questions"
 	"github.com/khoirulhasin/globe_tracker_api/app/models"
 )
 
-type quesService struct {
+type quesRepository struct {
 	db *gorm.DB
 }
 
-func NewQuestion(db *gorm.DB) *quesService {
-	return &quesService{
+func NewQuestionRepository(db *gorm.DB) *quesRepository {
+	return &quesRepository{
 		db,
 	}
 }
 
 // We implement the interface defined in the domain
-var _ questions.QuesService = &quesService{}
+var _ QuesRepository = &quesRepository{}
 
-func (s *quesService) CreateQuestion(question *models.Question) (*models.Question, error) {
+func (s *quesRepository) CreateQuestion(question *models.Question) (*models.Question, error) {
 
 	err := s.db.Create(&question).Error
 	if err != nil {
@@ -36,7 +35,7 @@ func (s *quesService) CreateQuestion(question *models.Question) (*models.Questio
 
 }
 
-func (s *quesService) UpdateQuestion(question *models.Question) (*models.Question, error) {
+func (s *quesRepository) UpdateQuestion(question *models.Question) (*models.Question, error) {
 
 	err := s.db.Save(&question).Error
 	if err != nil {
@@ -50,7 +49,7 @@ func (s *quesService) UpdateQuestion(question *models.Question) (*models.Questio
 
 }
 
-func (s *quesService) DeleteQuestion(id string) error {
+func (s *quesRepository) DeleteQuestion(id string) error {
 
 	ques := &models.Question{}
 
@@ -62,7 +61,7 @@ func (s *quesService) DeleteQuestion(id string) error {
 	return nil
 }
 
-func (s *quesService) GetQuestionByID(id string) (*models.Question, error) {
+func (s *quesRepository) GetQuestionByID(id string) (*models.Question, error) {
 
 	ques := &models.Question{}
 
@@ -74,7 +73,7 @@ func (s *quesService) GetQuestionByID(id string) (*models.Question, error) {
 	return ques, nil
 }
 
-func (s *quesService) GetAllQuestions() ([]*models.Question, error) {
+func (s *quesRepository) GetAllQuestions() ([]*models.Question, error) {
 
 	var questions []*models.Question
 

@@ -6,20 +6,25 @@ import (
 	"time"
 )
 
-type Answer struct {
-	ID         string    `json:"id" db:"id"`
-	QuestionID string    `json:"questionId" db:"questionId"`
-	OptionID   string    `json:"optionId" db:"optionId"`
-	IsCorrect  bool      `json:"isCorrect" db:"isCorrect"`
-	CreatedAt  time.Time `json:"createdAt" db:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt" db:"updatedAt"`
+type Data interface {
+	IsData()
 }
 
-type AnswerResponse struct {
-	Message  string    `json:"message" db:"message"`
-	Status   int32     `json:"status" db:"status"`
-	Data     *Answer   `json:"data,omitempty" db:"data"`
-	DataList []*Answer `json:"dataList,omitempty" db:"dataList"`
+type Answer struct {
+	ID         string    `json:"id"`
+	QuestionID string    `json:"questionId"`
+	OptionID   string    `json:"optionId"`
+	IsCorrect  bool      `json:"isCorrect"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
+}
+
+func (Answer) IsData() {}
+
+type ListResponse struct {
+	Message string `json:"message"`
+	Status  int32  `json:"status"`
+	Data    []Data `json:"data,omitempty"`
 }
 
 type Mutation struct {
@@ -29,37 +34,40 @@ type Query struct {
 }
 
 type Question struct {
-	ID             string            `json:"id" db:"id"`
-	Title          string            `json:"title" gorm:"unique" db:"title"`
-	QuestionOption []*QuestionOption `json:"questionOption,omitempty" db:"questionOption"`
-	CreatedAt      time.Time         `json:"createdAt" db:"createdAt"`
-	UpdatedAt      time.Time         `json:"updatedAt" db:"updatedAt"`
+	ID             string            `json:"id"`
+	Title          string            `json:"title"`
+	QuestionOption []*QuestionOption `json:"questionOption,omitempty"`
+	CreatedAt      time.Time         `json:"createdAt"`
+	UpdatedAt      time.Time         `json:"updatedAt"`
 }
 
+func (Question) IsData() {}
+
 type QuestionInput struct {
-	Title   string                 `json:"title" db:"title"`
-	Options []*QuestionOptionInput `json:"options" db:"options"`
+	Title   string                 `json:"title"`
+	Options []*QuestionOptionInput `json:"options"`
 }
 
 type QuestionOption struct {
-	ID         string    `json:"id" db:"id"`
-	QuestionID string    `json:"questionId" db:"questionId"`
-	Title      string    `json:"title" db:"title"`
-	Position   int32     `json:"position" db:"position"`
-	IsCorrect  bool      `json:"isCorrect" db:"isCorrect"`
-	CreatedAt  time.Time `json:"createdAt" db:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt" db:"updatedAt"`
+	ID         string    `json:"id"`
+	QuestionID string    `json:"questionId"`
+	Title      string    `json:"title"`
+	Position   int32     `json:"position"`
+	IsCorrect  bool      `json:"isCorrect"`
+	CreatedAt  time.Time `json:"createdAt"`
+	UpdatedAt  time.Time `json:"updatedAt"`
 }
+
+func (QuestionOption) IsData() {}
 
 type QuestionOptionInput struct {
-	Title     string `json:"title" db:"title"`
-	Position  int32  `json:"position" db:"position"`
-	IsCorrect bool   `json:"isCorrect" db:"isCorrect"`
+	Title     string `json:"title"`
+	Position  int32  `json:"position"`
+	IsCorrect bool   `json:"isCorrect"`
 }
 
-type QuestionResponse struct {
-	Message  string      `json:"message" db:"message"`
-	Status   int32       `json:"status" db:"status"`
-	Data     *Question   `json:"data,omitempty" db:"data"`
-	DataList []*Question `json:"dataList,omitempty" db:"dataList"`
+type Response struct {
+	Message string `json:"message"`
+	Status  int32  `json:"status"`
+	Data    Data   `json:"data,omitempty"`
 }

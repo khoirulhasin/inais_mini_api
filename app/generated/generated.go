@@ -56,11 +56,10 @@ type ComplexityRoot struct {
 		UpdatedAt  func(childComplexity int) int
 	}
 
-	AnswerResponse struct {
-		Data     func(childComplexity int) int
-		DataList func(childComplexity int) int
-		Message  func(childComplexity int) int
-		Status   func(childComplexity int) int
+	ListResponse struct {
+		Data    func(childComplexity int) int
+		Message func(childComplexity int) int
+		Status  func(childComplexity int) int
 	}
 
 	Mutation struct {
@@ -97,27 +96,26 @@ type ComplexityRoot struct {
 		UpdatedAt  func(childComplexity int) int
 	}
 
-	QuestionResponse struct {
-		Data     func(childComplexity int) int
-		DataList func(childComplexity int) int
-		Message  func(childComplexity int) int
-		Status   func(childComplexity int) int
+	Response struct {
+		Data    func(childComplexity int) int
+		Message func(childComplexity int) int
+		Status  func(childComplexity int) int
 	}
 }
 
 type MutationResolver interface {
-	CreateQuestion(ctx context.Context, question models.QuestionInput) (*models.QuestionResponse, error)
-	UpdateQuestion(ctx context.Context, id string, question models.QuestionInput) (*models.QuestionResponse, error)
-	DeleteQuestion(ctx context.Context, id string) (*models.QuestionResponse, error)
-	CreateAnswer(ctx context.Context, questionID string, optionID string) (*models.AnswerResponse, error)
-	UpdateAnswer(ctx context.Context, id string, questionID string, optionID string) (*models.AnswerResponse, error)
-	DeleteAnswer(ctx context.Context, id string) (*models.AnswerResponse, error)
+	CreateQuestion(ctx context.Context, question models.QuestionInput) (*models.Response, error)
+	UpdateQuestion(ctx context.Context, id string, question models.QuestionInput) (*models.Response, error)
+	DeleteQuestion(ctx context.Context, id string) (*models.Response, error)
+	CreateAnswer(ctx context.Context, questionID string, optionID string) (*models.Response, error)
+	UpdateAnswer(ctx context.Context, id string, questionID string, optionID string) (*models.Response, error)
+	DeleteAnswer(ctx context.Context, id string) (*models.Response, error)
 }
 type QueryResolver interface {
-	GetOneQuestion(ctx context.Context, id string) (*models.QuestionResponse, error)
-	GetAllQuestions(ctx context.Context) (*models.QuestionResponse, error)
-	GetOneAnswer(ctx context.Context, id string) (*models.AnswerResponse, error)
-	GetAllQuestionAnswers(ctx context.Context, questionID string) (*models.AnswerResponse, error)
+	GetOneQuestion(ctx context.Context, id string) (*models.Response, error)
+	GetAllQuestions(ctx context.Context) (*models.ListResponse, error)
+	GetOneAnswer(ctx context.Context, id string) (*models.Response, error)
+	GetAllQuestionAnswers(ctx context.Context, questionID string) (*models.ListResponse, error)
 }
 
 type executableSchema struct {
@@ -181,33 +179,26 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Answer.UpdatedAt(childComplexity), true
 
-	case "AnswerResponse.data":
-		if e.complexity.AnswerResponse.Data == nil {
+	case "ListResponse.data":
+		if e.complexity.ListResponse.Data == nil {
 			break
 		}
 
-		return e.complexity.AnswerResponse.Data(childComplexity), true
+		return e.complexity.ListResponse.Data(childComplexity), true
 
-	case "AnswerResponse.dataList":
-		if e.complexity.AnswerResponse.DataList == nil {
+	case "ListResponse.message":
+		if e.complexity.ListResponse.Message == nil {
 			break
 		}
 
-		return e.complexity.AnswerResponse.DataList(childComplexity), true
+		return e.complexity.ListResponse.Message(childComplexity), true
 
-	case "AnswerResponse.message":
-		if e.complexity.AnswerResponse.Message == nil {
+	case "ListResponse.status":
+		if e.complexity.ListResponse.Status == nil {
 			break
 		}
 
-		return e.complexity.AnswerResponse.Message(childComplexity), true
-
-	case "AnswerResponse.status":
-		if e.complexity.AnswerResponse.Status == nil {
-			break
-		}
-
-		return e.complexity.AnswerResponse.Status(childComplexity), true
+		return e.complexity.ListResponse.Status(childComplexity), true
 
 	case "Mutation.CreateAnswer":
 		if e.complexity.Mutation.CreateAnswer == nil {
@@ -408,33 +399,26 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.QuestionOption.UpdatedAt(childComplexity), true
 
-	case "QuestionResponse.data":
-		if e.complexity.QuestionResponse.Data == nil {
+	case "Response.data":
+		if e.complexity.Response.Data == nil {
 			break
 		}
 
-		return e.complexity.QuestionResponse.Data(childComplexity), true
+		return e.complexity.Response.Data(childComplexity), true
 
-	case "QuestionResponse.dataList":
-		if e.complexity.QuestionResponse.DataList == nil {
+	case "Response.message":
+		if e.complexity.Response.Message == nil {
 			break
 		}
 
-		return e.complexity.QuestionResponse.DataList(childComplexity), true
+		return e.complexity.Response.Message(childComplexity), true
 
-	case "QuestionResponse.message":
-		if e.complexity.QuestionResponse.Message == nil {
+	case "Response.status":
+		if e.complexity.Response.Status == nil {
 			break
 		}
 
-		return e.complexity.QuestionResponse.Message(childComplexity), true
-
-	case "QuestionResponse.status":
-		if e.complexity.QuestionResponse.Status == nil {
-			break
-		}
-
-		return e.complexity.QuestionResponse.Status(childComplexity), true
+		return e.complexity.Response.Status(childComplexity), true
 
 	}
 	return 0, false
@@ -543,7 +527,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "../schemas/answer.graphqls", Input: `type Answer {
+	{Name: "../domains/answers/answer.graphqls", Input: `type Answer {
     id: ID!
     questionId: ID!
     optionId: ID!
@@ -553,54 +537,17 @@ var sources = []*ast.Source{
 }
 
 extend type Mutation {
-    CreateAnswer(questionId: ID!, optionId: ID!): AnswerResponse
-    UpdateAnswer(id: ID! questionId: ID!, optionId: ID!): AnswerResponse
-    DeleteAnswer(id: ID!): AnswerResponse
+    CreateAnswer(questionId: ID!, optionId: ID!): Response
+    UpdateAnswer(id: ID! questionId: ID!, optionId: ID!): Response
+    DeleteAnswer(id: ID!): Response
 }
 
 extend type Query {
-    GetOneAnswer(id: ID!): AnswerResponse
-    GetAllQuestionAnswers(questionId: ID!): AnswerResponse
-}
-
-type AnswerResponse {
-    message: String!
-    status: Int!
-    data: Answer  #For single record
-    dataList: [Answer] # For array of records.
+    GetOneAnswer(id: ID!): Response
+    GetAllQuestionAnswers(questionId: ID!): ListResponse
 }
 `, BuiltIn: false},
-	{Name: "../schemas/question.graphqls", Input: `type Question {
-    id: ID!
-    title: String!
-    questionOption: [QuestionOption]
-    createdAt: Time!
-    updatedAt: Time!
-}
-
-input QuestionInput {
-    title: String!,
-    options: [QuestionOptionInput!]!
-}
-
-type Mutation {
-    CreateQuestion(question: QuestionInput!): QuestionResponse
-    UpdateQuestion(id: ID!, question: QuestionInput!): QuestionResponse
-    DeleteQuestion(id: ID!): QuestionResponse
-}
-
-type Query {
-    GetOneQuestion(id: ID!): QuestionResponse
-    GetAllQuestions: QuestionResponse
-}
-
-type QuestionResponse {
-    message: String!
-    status: Int!
-    data: Question
-    dataList: [Question]
-}`, BuiltIn: false},
-	{Name: "../schemas/question_option.graphqls", Input: `type QuestionOption {
+	{Name: "../domains/question_options/question_option.graphqls", Input: `type QuestionOption {
     id: ID!
     questionId: ID!
     title: String!
@@ -616,7 +563,44 @@ input QuestionOptionInput {
     isCorrect: Boolean!
 }
 `, BuiltIn: false},
-	{Name: "../schemas/schema.graphqls", Input: `scalar Time`, BuiltIn: false},
+	{Name: "../domains/questions/question.graphqls", Input: `type Question {
+    id: ID!
+    title: String!
+    questionOption: [QuestionOption]
+    createdAt: Time!
+    updatedAt: Time!
+}
+
+input QuestionInput {
+    title: String!,
+    options: [QuestionOptionInput!]!
+}
+
+type Mutation {
+    CreateQuestion(question: QuestionInput!): Response
+    UpdateQuestion(id: ID!, question: QuestionInput!): Response
+    DeleteQuestion(id: ID!): Response
+}
+
+type Query {
+    GetOneQuestion(id: ID!): Response
+    GetAllQuestions: ListResponse
+}`, BuiltIn: false},
+	{Name: "../schemas/schema.graphqls", Input: `scalar Time
+
+type Response {
+    message: String!
+    status: Int!
+    data: Data
+}
+
+type ListResponse {
+    message: String!
+    status: Int!
+    data: [Data]
+}
+
+union Data = Answer | Question | QuestionOption`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
@@ -1290,8 +1274,8 @@ func (ec *executionContext) fieldContext_Answer_updatedAt(_ context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _AnswerResponse_message(ctx context.Context, field graphql.CollectedField, obj *models.AnswerResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AnswerResponse_message(ctx, field)
+func (ec *executionContext) _ListResponse_message(ctx context.Context, field graphql.CollectedField, obj *models.ListResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ListResponse_message(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1321,9 +1305,9 @@ func (ec *executionContext) _AnswerResponse_message(ctx context.Context, field g
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AnswerResponse_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ListResponse_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AnswerResponse",
+		Object:     "ListResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1334,8 +1318,8 @@ func (ec *executionContext) fieldContext_AnswerResponse_message(_ context.Contex
 	return fc, nil
 }
 
-func (ec *executionContext) _AnswerResponse_status(ctx context.Context, field graphql.CollectedField, obj *models.AnswerResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AnswerResponse_status(ctx, field)
+func (ec *executionContext) _ListResponse_status(ctx context.Context, field graphql.CollectedField, obj *models.ListResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ListResponse_status(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1365,9 +1349,9 @@ func (ec *executionContext) _AnswerResponse_status(ctx context.Context, field gr
 	return ec.marshalNInt2int32(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AnswerResponse_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ListResponse_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AnswerResponse",
+		Object:     "ListResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -1378,8 +1362,8 @@ func (ec *executionContext) fieldContext_AnswerResponse_status(_ context.Context
 	return fc, nil
 }
 
-func (ec *executionContext) _AnswerResponse_data(ctx context.Context, field graphql.CollectedField, obj *models.AnswerResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AnswerResponse_data(ctx, field)
+func (ec *executionContext) _ListResponse_data(ctx context.Context, field graphql.CollectedField, obj *models.ListResponse) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ListResponse_data(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -1401,88 +1385,19 @@ func (ec *executionContext) _AnswerResponse_data(ctx context.Context, field grap
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.Answer)
+	res := resTmp.([]models.Data)
 	fc.Result = res
-	return ec.marshalOAnswer2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswer(ctx, field.Selections, res)
+	return ec.marshalOData2ᚕgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐData(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_AnswerResponse_data(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_ListResponse_data(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "AnswerResponse",
+		Object:     "ListResponse",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Answer_id(ctx, field)
-			case "questionId":
-				return ec.fieldContext_Answer_questionId(ctx, field)
-			case "optionId":
-				return ec.fieldContext_Answer_optionId(ctx, field)
-			case "isCorrect":
-				return ec.fieldContext_Answer_isCorrect(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Answer_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Answer_updatedAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Answer", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _AnswerResponse_dataList(ctx context.Context, field graphql.CollectedField, obj *models.AnswerResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_AnswerResponse_dataList(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DataList, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*models.Answer)
-	fc.Result = res
-	return ec.marshalOAnswer2ᚕᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswer(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_AnswerResponse_dataList(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "AnswerResponse",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Answer_id(ctx, field)
-			case "questionId":
-				return ec.fieldContext_Answer_questionId(ctx, field)
-			case "optionId":
-				return ec.fieldContext_Answer_optionId(ctx, field)
-			case "isCorrect":
-				return ec.fieldContext_Answer_isCorrect(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Answer_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Answer_updatedAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Answer", field.Name)
+			return nil, errors.New("field of type Data does not have child fields")
 		},
 	}
 	return fc, nil
@@ -1511,9 +1426,9 @@ func (ec *executionContext) _Mutation_CreateQuestion(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.QuestionResponse)
+	res := resTmp.(*models.Response)
 	fc.Result = res
-	return ec.marshalOQuestionResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestionResponse(ctx, field.Selections, res)
+	return ec.marshalOResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_CreateQuestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1525,15 +1440,13 @@ func (ec *executionContext) fieldContext_Mutation_CreateQuestion(ctx context.Con
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "message":
-				return ec.fieldContext_QuestionResponse_message(ctx, field)
+				return ec.fieldContext_Response_message(ctx, field)
 			case "status":
-				return ec.fieldContext_QuestionResponse_status(ctx, field)
+				return ec.fieldContext_Response_status(ctx, field)
 			case "data":
-				return ec.fieldContext_QuestionResponse_data(ctx, field)
-			case "dataList":
-				return ec.fieldContext_QuestionResponse_dataList(ctx, field)
+				return ec.fieldContext_Response_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type QuestionResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Response", field.Name)
 		},
 	}
 	defer func() {
@@ -1573,9 +1486,9 @@ func (ec *executionContext) _Mutation_UpdateQuestion(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.QuestionResponse)
+	res := resTmp.(*models.Response)
 	fc.Result = res
-	return ec.marshalOQuestionResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestionResponse(ctx, field.Selections, res)
+	return ec.marshalOResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_UpdateQuestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1587,15 +1500,13 @@ func (ec *executionContext) fieldContext_Mutation_UpdateQuestion(ctx context.Con
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "message":
-				return ec.fieldContext_QuestionResponse_message(ctx, field)
+				return ec.fieldContext_Response_message(ctx, field)
 			case "status":
-				return ec.fieldContext_QuestionResponse_status(ctx, field)
+				return ec.fieldContext_Response_status(ctx, field)
 			case "data":
-				return ec.fieldContext_QuestionResponse_data(ctx, field)
-			case "dataList":
-				return ec.fieldContext_QuestionResponse_dataList(ctx, field)
+				return ec.fieldContext_Response_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type QuestionResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Response", field.Name)
 		},
 	}
 	defer func() {
@@ -1635,9 +1546,9 @@ func (ec *executionContext) _Mutation_DeleteQuestion(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.QuestionResponse)
+	res := resTmp.(*models.Response)
 	fc.Result = res
-	return ec.marshalOQuestionResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestionResponse(ctx, field.Selections, res)
+	return ec.marshalOResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_DeleteQuestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1649,15 +1560,13 @@ func (ec *executionContext) fieldContext_Mutation_DeleteQuestion(ctx context.Con
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "message":
-				return ec.fieldContext_QuestionResponse_message(ctx, field)
+				return ec.fieldContext_Response_message(ctx, field)
 			case "status":
-				return ec.fieldContext_QuestionResponse_status(ctx, field)
+				return ec.fieldContext_Response_status(ctx, field)
 			case "data":
-				return ec.fieldContext_QuestionResponse_data(ctx, field)
-			case "dataList":
-				return ec.fieldContext_QuestionResponse_dataList(ctx, field)
+				return ec.fieldContext_Response_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type QuestionResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Response", field.Name)
 		},
 	}
 	defer func() {
@@ -1697,9 +1606,9 @@ func (ec *executionContext) _Mutation_CreateAnswer(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.AnswerResponse)
+	res := resTmp.(*models.Response)
 	fc.Result = res
-	return ec.marshalOAnswerResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswerResponse(ctx, field.Selections, res)
+	return ec.marshalOResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_CreateAnswer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1711,15 +1620,13 @@ func (ec *executionContext) fieldContext_Mutation_CreateAnswer(ctx context.Conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "message":
-				return ec.fieldContext_AnswerResponse_message(ctx, field)
+				return ec.fieldContext_Response_message(ctx, field)
 			case "status":
-				return ec.fieldContext_AnswerResponse_status(ctx, field)
+				return ec.fieldContext_Response_status(ctx, field)
 			case "data":
-				return ec.fieldContext_AnswerResponse_data(ctx, field)
-			case "dataList":
-				return ec.fieldContext_AnswerResponse_dataList(ctx, field)
+				return ec.fieldContext_Response_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type AnswerResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Response", field.Name)
 		},
 	}
 	defer func() {
@@ -1759,9 +1666,9 @@ func (ec *executionContext) _Mutation_UpdateAnswer(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.AnswerResponse)
+	res := resTmp.(*models.Response)
 	fc.Result = res
-	return ec.marshalOAnswerResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswerResponse(ctx, field.Selections, res)
+	return ec.marshalOResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_UpdateAnswer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1773,15 +1680,13 @@ func (ec *executionContext) fieldContext_Mutation_UpdateAnswer(ctx context.Conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "message":
-				return ec.fieldContext_AnswerResponse_message(ctx, field)
+				return ec.fieldContext_Response_message(ctx, field)
 			case "status":
-				return ec.fieldContext_AnswerResponse_status(ctx, field)
+				return ec.fieldContext_Response_status(ctx, field)
 			case "data":
-				return ec.fieldContext_AnswerResponse_data(ctx, field)
-			case "dataList":
-				return ec.fieldContext_AnswerResponse_dataList(ctx, field)
+				return ec.fieldContext_Response_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type AnswerResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Response", field.Name)
 		},
 	}
 	defer func() {
@@ -1821,9 +1726,9 @@ func (ec *executionContext) _Mutation_DeleteAnswer(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.AnswerResponse)
+	res := resTmp.(*models.Response)
 	fc.Result = res
-	return ec.marshalOAnswerResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswerResponse(ctx, field.Selections, res)
+	return ec.marshalOResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_DeleteAnswer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1835,15 +1740,13 @@ func (ec *executionContext) fieldContext_Mutation_DeleteAnswer(ctx context.Conte
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "message":
-				return ec.fieldContext_AnswerResponse_message(ctx, field)
+				return ec.fieldContext_Response_message(ctx, field)
 			case "status":
-				return ec.fieldContext_AnswerResponse_status(ctx, field)
+				return ec.fieldContext_Response_status(ctx, field)
 			case "data":
-				return ec.fieldContext_AnswerResponse_data(ctx, field)
-			case "dataList":
-				return ec.fieldContext_AnswerResponse_dataList(ctx, field)
+				return ec.fieldContext_Response_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type AnswerResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Response", field.Name)
 		},
 	}
 	defer func() {
@@ -1883,9 +1786,9 @@ func (ec *executionContext) _Query_GetOneQuestion(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.QuestionResponse)
+	res := resTmp.(*models.Response)
 	fc.Result = res
-	return ec.marshalOQuestionResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestionResponse(ctx, field.Selections, res)
+	return ec.marshalOResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_GetOneQuestion(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1897,15 +1800,13 @@ func (ec *executionContext) fieldContext_Query_GetOneQuestion(ctx context.Contex
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "message":
-				return ec.fieldContext_QuestionResponse_message(ctx, field)
+				return ec.fieldContext_Response_message(ctx, field)
 			case "status":
-				return ec.fieldContext_QuestionResponse_status(ctx, field)
+				return ec.fieldContext_Response_status(ctx, field)
 			case "data":
-				return ec.fieldContext_QuestionResponse_data(ctx, field)
-			case "dataList":
-				return ec.fieldContext_QuestionResponse_dataList(ctx, field)
+				return ec.fieldContext_Response_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type QuestionResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Response", field.Name)
 		},
 	}
 	defer func() {
@@ -1945,9 +1846,9 @@ func (ec *executionContext) _Query_GetAllQuestions(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.QuestionResponse)
+	res := resTmp.(*models.ListResponse)
 	fc.Result = res
-	return ec.marshalOQuestionResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestionResponse(ctx, field.Selections, res)
+	return ec.marshalOListResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐListResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_GetAllQuestions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1959,15 +1860,13 @@ func (ec *executionContext) fieldContext_Query_GetAllQuestions(_ context.Context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "message":
-				return ec.fieldContext_QuestionResponse_message(ctx, field)
+				return ec.fieldContext_ListResponse_message(ctx, field)
 			case "status":
-				return ec.fieldContext_QuestionResponse_status(ctx, field)
+				return ec.fieldContext_ListResponse_status(ctx, field)
 			case "data":
-				return ec.fieldContext_QuestionResponse_data(ctx, field)
-			case "dataList":
-				return ec.fieldContext_QuestionResponse_dataList(ctx, field)
+				return ec.fieldContext_ListResponse_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type QuestionResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ListResponse", field.Name)
 		},
 	}
 	return fc, nil
@@ -1996,9 +1895,9 @@ func (ec *executionContext) _Query_GetOneAnswer(ctx context.Context, field graph
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.AnswerResponse)
+	res := resTmp.(*models.Response)
 	fc.Result = res
-	return ec.marshalOAnswerResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswerResponse(ctx, field.Selections, res)
+	return ec.marshalOResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_GetOneAnswer(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2010,15 +1909,13 @@ func (ec *executionContext) fieldContext_Query_GetOneAnswer(ctx context.Context,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "message":
-				return ec.fieldContext_AnswerResponse_message(ctx, field)
+				return ec.fieldContext_Response_message(ctx, field)
 			case "status":
-				return ec.fieldContext_AnswerResponse_status(ctx, field)
+				return ec.fieldContext_Response_status(ctx, field)
 			case "data":
-				return ec.fieldContext_AnswerResponse_data(ctx, field)
-			case "dataList":
-				return ec.fieldContext_AnswerResponse_dataList(ctx, field)
+				return ec.fieldContext_Response_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type AnswerResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type Response", field.Name)
 		},
 	}
 	defer func() {
@@ -2058,9 +1955,9 @@ func (ec *executionContext) _Query_GetAllQuestionAnswers(ctx context.Context, fi
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.AnswerResponse)
+	res := resTmp.(*models.ListResponse)
 	fc.Result = res
-	return ec.marshalOAnswerResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswerResponse(ctx, field.Selections, res)
+	return ec.marshalOListResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐListResponse(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_GetAllQuestionAnswers(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -2072,15 +1969,13 @@ func (ec *executionContext) fieldContext_Query_GetAllQuestionAnswers(ctx context
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "message":
-				return ec.fieldContext_AnswerResponse_message(ctx, field)
+				return ec.fieldContext_ListResponse_message(ctx, field)
 			case "status":
-				return ec.fieldContext_AnswerResponse_status(ctx, field)
+				return ec.fieldContext_ListResponse_status(ctx, field)
 			case "data":
-				return ec.fieldContext_AnswerResponse_data(ctx, field)
-			case "dataList":
-				return ec.fieldContext_AnswerResponse_dataList(ctx, field)
+				return ec.fieldContext_ListResponse_data(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type AnswerResponse", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type ListResponse", field.Name)
 		},
 	}
 	defer func() {
@@ -2769,8 +2664,8 @@ func (ec *executionContext) fieldContext_QuestionOption_updatedAt(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _QuestionResponse_message(ctx context.Context, field graphql.CollectedField, obj *models.QuestionResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_QuestionResponse_message(ctx, field)
+func (ec *executionContext) _Response_message(ctx context.Context, field graphql.CollectedField, obj *models.Response) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Response_message(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2800,9 +2695,9 @@ func (ec *executionContext) _QuestionResponse_message(ctx context.Context, field
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_QuestionResponse_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Response_message(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "QuestionResponse",
+		Object:     "Response",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -2813,8 +2708,8 @@ func (ec *executionContext) fieldContext_QuestionResponse_message(_ context.Cont
 	return fc, nil
 }
 
-func (ec *executionContext) _QuestionResponse_status(ctx context.Context, field graphql.CollectedField, obj *models.QuestionResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_QuestionResponse_status(ctx, field)
+func (ec *executionContext) _Response_status(ctx context.Context, field graphql.CollectedField, obj *models.Response) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Response_status(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2844,9 +2739,9 @@ func (ec *executionContext) _QuestionResponse_status(ctx context.Context, field 
 	return ec.marshalNInt2int32(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_QuestionResponse_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Response_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "QuestionResponse",
+		Object:     "Response",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
@@ -2857,8 +2752,8 @@ func (ec *executionContext) fieldContext_QuestionResponse_status(_ context.Conte
 	return fc, nil
 }
 
-func (ec *executionContext) _QuestionResponse_data(ctx context.Context, field graphql.CollectedField, obj *models.QuestionResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_QuestionResponse_data(ctx, field)
+func (ec *executionContext) _Response_data(ctx context.Context, field graphql.CollectedField, obj *models.Response) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Response_data(ctx, field)
 	if err != nil {
 		return graphql.Null
 	}
@@ -2880,84 +2775,19 @@ func (ec *executionContext) _QuestionResponse_data(ctx context.Context, field gr
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.Question)
+	res := resTmp.(models.Data)
 	fc.Result = res
-	return ec.marshalOQuestion2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestion(ctx, field.Selections, res)
+	return ec.marshalOData2githubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐData(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) fieldContext_QuestionResponse_data(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+func (ec *executionContext) fieldContext_Response_data(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
-		Object:     "QuestionResponse",
+		Object:     "Response",
 		Field:      field,
 		IsMethod:   false,
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Question_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Question_title(ctx, field)
-			case "questionOption":
-				return ec.fieldContext_Question_questionOption(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Question_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Question_updatedAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Question", field.Name)
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _QuestionResponse_dataList(ctx context.Context, field graphql.CollectedField, obj *models.QuestionResponse) (ret graphql.Marshaler) {
-	fc, err := ec.fieldContext_QuestionResponse_dataList(ctx, field)
-	if err != nil {
-		return graphql.Null
-	}
-	ctx = graphql.WithFieldContext(ctx, fc)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DataList, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]*models.Question)
-	fc.Result = res
-	return ec.marshalOQuestion2ᚕᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestion(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) fieldContext_QuestionResponse_dataList(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "QuestionResponse",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "id":
-				return ec.fieldContext_Question_id(ctx, field)
-			case "title":
-				return ec.fieldContext_Question_title(ctx, field)
-			case "questionOption":
-				return ec.fieldContext_Question_questionOption(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_Question_createdAt(ctx, field)
-			case "updatedAt":
-				return ec.fieldContext_Question_updatedAt(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type Question", field.Name)
+			return nil, errors.New("field of type Data does not have child fields")
 		},
 	}
 	return fc, nil
@@ -4993,11 +4823,41 @@ func (ec *executionContext) unmarshalInputQuestionOptionInput(ctx context.Contex
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _Data(ctx context.Context, sel ast.SelectionSet, obj models.Data) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case models.QuestionOption:
+		return ec._QuestionOption(ctx, sel, &obj)
+	case *models.QuestionOption:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._QuestionOption(ctx, sel, obj)
+	case models.Question:
+		return ec._Question(ctx, sel, &obj)
+	case *models.Question:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Question(ctx, sel, obj)
+	case models.Answer:
+		return ec._Answer(ctx, sel, &obj)
+	case *models.Answer:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Answer(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
 
-var answerImplementors = []string{"Answer"}
+var answerImplementors = []string{"Answer", "Data"}
 
 func (ec *executionContext) _Answer(ctx context.Context, sel ast.SelectionSet, obj *models.Answer) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, answerImplementors)
@@ -5061,31 +4921,29 @@ func (ec *executionContext) _Answer(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
-var answerResponseImplementors = []string{"AnswerResponse"}
+var listResponseImplementors = []string{"ListResponse"}
 
-func (ec *executionContext) _AnswerResponse(ctx context.Context, sel ast.SelectionSet, obj *models.AnswerResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, answerResponseImplementors)
+func (ec *executionContext) _ListResponse(ctx context.Context, sel ast.SelectionSet, obj *models.ListResponse) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, listResponseImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("AnswerResponse")
+			out.Values[i] = graphql.MarshalString("ListResponse")
 		case "message":
-			out.Values[i] = ec._AnswerResponse_message(ctx, field, obj)
+			out.Values[i] = ec._ListResponse_message(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "status":
-			out.Values[i] = ec._AnswerResponse_status(ctx, field, obj)
+			out.Values[i] = ec._ListResponse_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "data":
-			out.Values[i] = ec._AnswerResponse_data(ctx, field, obj)
-		case "dataList":
-			out.Values[i] = ec._AnswerResponse_dataList(ctx, field, obj)
+			out.Values[i] = ec._ListResponse_data(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -5301,7 +5159,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
-var questionImplementors = []string{"Question"}
+var questionImplementors = []string{"Question", "Data"}
 
 func (ec *executionContext) _Question(ctx context.Context, sel ast.SelectionSet, obj *models.Question) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, questionImplementors)
@@ -5357,7 +5215,7 @@ func (ec *executionContext) _Question(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
-var questionOptionImplementors = []string{"QuestionOption"}
+var questionOptionImplementors = []string{"QuestionOption", "Data"}
 
 func (ec *executionContext) _QuestionOption(ctx context.Context, sel ast.SelectionSet, obj *models.QuestionOption) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, questionOptionImplementors)
@@ -5426,31 +5284,29 @@ func (ec *executionContext) _QuestionOption(ctx context.Context, sel ast.Selecti
 	return out
 }
 
-var questionResponseImplementors = []string{"QuestionResponse"}
+var responseImplementors = []string{"Response"}
 
-func (ec *executionContext) _QuestionResponse(ctx context.Context, sel ast.SelectionSet, obj *models.QuestionResponse) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, questionResponseImplementors)
+func (ec *executionContext) _Response(ctx context.Context, sel ast.SelectionSet, obj *models.Response) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, responseImplementors)
 
 	out := graphql.NewFieldSet(fields)
 	deferred := make(map[string]*graphql.FieldSet)
 	for i, field := range fields {
 		switch field.Name {
 		case "__typename":
-			out.Values[i] = graphql.MarshalString("QuestionResponse")
+			out.Values[i] = graphql.MarshalString("Response")
 		case "message":
-			out.Values[i] = ec._QuestionResponse_message(ctx, field, obj)
+			out.Values[i] = ec._Response_message(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "status":
-			out.Values[i] = ec._QuestionResponse_status(ctx, field, obj)
+			out.Values[i] = ec._Response_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
 		case "data":
-			out.Values[i] = ec._QuestionResponse_data(ctx, field, obj)
-		case "dataList":
-			out.Values[i] = ec._QuestionResponse_dataList(ctx, field, obj)
+			out.Values[i] = ec._Response_data(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -6160,61 +6016,6 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOAnswer2ᚕᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswer(ctx context.Context, sel ast.SelectionSet, v []*models.Answer) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalOAnswer2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswer(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-
-	return ret
-}
-
-func (ec *executionContext) marshalOAnswer2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswer(ctx context.Context, sel ast.SelectionSet, v *models.Answer) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Answer(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalOAnswerResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐAnswerResponse(ctx context.Context, sel ast.SelectionSet, v *models.AnswerResponse) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._AnswerResponse(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -6241,7 +6042,14 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return res
 }
 
-func (ec *executionContext) marshalOQuestion2ᚕᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestion(ctx context.Context, sel ast.SelectionSet, v []*models.Question) graphql.Marshaler {
+func (ec *executionContext) marshalOData2githubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐData(ctx context.Context, sel ast.SelectionSet, v models.Data) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Data(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOData2ᚕgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐData(ctx context.Context, sel ast.SelectionSet, v []models.Data) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -6268,7 +6076,7 @@ func (ec *executionContext) marshalOQuestion2ᚕᚖgithubᚗcomᚋkhoirulhasin�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOQuestion2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestion(ctx, sel, v[i])
+			ret[i] = ec.marshalOData2githubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐData(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -6282,11 +6090,11 @@ func (ec *executionContext) marshalOQuestion2ᚕᚖgithubᚗcomᚋkhoirulhasin�
 	return ret
 }
 
-func (ec *executionContext) marshalOQuestion2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestion(ctx context.Context, sel ast.SelectionSet, v *models.Question) graphql.Marshaler {
+func (ec *executionContext) marshalOListResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐListResponse(ctx context.Context, sel ast.SelectionSet, v *models.ListResponse) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._Question(ctx, sel, v)
+	return ec._ListResponse(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOQuestionOption2ᚕᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestionOption(ctx context.Context, sel ast.SelectionSet, v []*models.QuestionOption) graphql.Marshaler {
@@ -6337,11 +6145,11 @@ func (ec *executionContext) marshalOQuestionOption2ᚖgithubᚗcomᚋkhoirulhasi
 	return ec._QuestionOption(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOQuestionResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐQuestionResponse(ctx context.Context, sel ast.SelectionSet, v *models.QuestionResponse) graphql.Marshaler {
+func (ec *executionContext) marshalOResponse2ᚖgithubᚗcomᚋkhoirulhasinᚋglobe_tracker_apiᚋappᚋmodelsᚐResponse(ctx context.Context, sel ast.SelectionSet, v *models.Response) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
-	return ec._QuestionResponse(ctx, sel, v)
+	return ec._Response(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v any) (*string, error) {
