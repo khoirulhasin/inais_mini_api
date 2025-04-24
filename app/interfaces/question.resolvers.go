@@ -74,11 +74,7 @@ func (r *mutationResolver) CreateQuestion(ctx context.Context, question models.Q
 		}
 	}
 
-	return &models.Response{
-		Message: "Successfully created question",
-		Status:  http.StatusCreated,
-		Data:    quest,
-	}, nil
+	return helpers.ResponseDataFormat(quest, "Question")
 }
 
 // UpdateQuestion is the resolver for the UpdateQuestion field.
@@ -150,11 +146,7 @@ func (r *mutationResolver) UpdateQuestion(ctx context.Context, id string, questi
 		}
 	}
 
-	return &models.Response{
-		Message: "Successfully updated question",
-		Status:  http.StatusOK,
-		Data:    quest,
-	}, nil
+	return helpers.ResponseDataFormat(quest, "Question")
 }
 
 // DeleteQuestion is the resolver for the DeleteQuestion field.
@@ -178,10 +170,7 @@ func (r *mutationResolver) DeleteQuestion(ctx context.Context, id string) (*mode
 		}, nil
 	}
 
-	return &models.Response{
-		Message: "Successfully deleted question",
-		Status:  http.StatusOK,
-	}, nil
+	return helpers.SuccessResponseFormat()
 }
 
 // GetOneQuestion is the resolver for the GetOneQuestion field.
@@ -197,15 +186,12 @@ func (r *queryResolver) GetOneQuestion(ctx context.Context, id string) (*models.
 		}, nil
 	}
 
-	return &models.Response{
-		Message: "Successfully retrieved question",
-		Status:  http.StatusOK,
-		Data:    question,
-	}, nil
+	return helpers.ResponseDataFormat(question, "Question")
 }
 
 // GetAllQuestions is the resolver for the GetAllQuestions field.
 func (r *queryResolver) GetAllQuestions(ctx context.Context) (*models.ListResponse, error) {
+
 	gc, _ := helpers.GinContextFromContext(ctx)
 	error_handlers.PanicHandler(gc)
 	questions, err := r.QuestionRepository.GetAllQuestions()
@@ -220,13 +206,10 @@ func (r *queryResolver) GetAllQuestions(ctx context.Context) (*models.ListRespon
 	var data []models.Data
 	for _, quest := range questions {
 		data = append(data, models.Data(*quest))
+
 	}
 
-	return &models.ListResponse{
-		Message: "Successfully retrieved all questions",
-		Status:  http.StatusOK,
-		Data:    data,
-	}, nil
+	return helpers.ListResponseDataFormat(data, "Questions")
 }
 
 // Mutation returns generated.MutationResolver implementation.

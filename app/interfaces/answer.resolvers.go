@@ -32,10 +32,7 @@ func (r *mutationResolver) CreateAnswer(ctx context.Context, questionID string, 
 	//check if the answer is correct:
 	correctOpt, err := r.QuestionOptionRepository.GetQuestionOptionByID(optionID)
 	if err != nil {
-		return &models.Response{
-			Message: "Error getting question option",
-			Status:  http.StatusInternalServerError,
-		}, nil
+		return error_handlers.PanicException(error_handlers.InternalError)
 	}
 
 	if correctOpt.IsCorrect == true {
@@ -50,17 +47,10 @@ func (r *mutationResolver) CreateAnswer(ctx context.Context, questionID string, 
 	answer, err := r.AnsRepository.CreateAnswer(ans)
 	if err != nil {
 		log.Println("Answer creation error: ", err)
-		return &models.Response{
-			Message: "Error creating answer",
-			Status:  http.StatusInternalServerError,
-		}, nil
+		return error_handlers.PanicException(error_handlers.InternalError)
 	}
 
-	return &models.Response{
-		Message: "Successfully created answer",
-		Status:  http.StatusCreated,
-		Data:    answer,
-	}, nil
+	return helpers.ResponseDataFormat(answer, "Answer")
 }
 
 // UpdateAnswer is the resolver for the UpdateAnswer field.
@@ -91,10 +81,7 @@ func (r *mutationResolver) UpdateAnswer(ctx context.Context, id string, question
 	//check if the answer is correct:
 	correctOpt, err := r.AnsRepository.GetAnswerByID(optionID)
 	if err != nil {
-		return &models.Response{
-			Message: "Error getting question option",
-			Status:  http.StatusInternalServerError,
-		}, nil
+		return error_handlers.PanicException(error_handlers.InternalError)
 	}
 
 	if correctOpt.IsCorrect == true {
@@ -106,17 +93,10 @@ func (r *mutationResolver) UpdateAnswer(ctx context.Context, id string, question
 	answer, err := r.AnsRepository.UpdateAnswer(ans)
 	if err != nil {
 		log.Println("Answer updating error: ", err)
-		return &models.Response{
-			Message: "Error updating answer",
-			Status:  http.StatusInternalServerError,
-		}, nil
+		return error_handlers.PanicException(error_handlers.InternalError)
 	}
 
-	return &models.Response{
-		Message: "Successfully updated answer",
-		Status:  http.StatusOK,
-		Data:    answer,
-	}, nil
+	return helpers.ResponseDataFormat(answer, "Answer")
 }
 
 // DeleteAnswer is the resolver for the DeleteAnswer field.
@@ -125,16 +105,10 @@ func (r *mutationResolver) DeleteAnswer(ctx context.Context, id string) (*models
 	error_handlers.PanicHandler(gc)
 	err := r.AnsRepository.DeleteAnswer(id)
 	if err != nil {
-		return &models.Response{
-			Message: "Something went wrong deleting the answer.",
-			Status:  http.StatusInternalServerError,
-		}, nil
+		return error_handlers.PanicException(error_handlers.InternalError)
 	}
 
-	return &models.Response{
-		Message: "Successfully deleted answer",
-		Status:  http.StatusOK,
-	}, nil
+	return helpers.SuccessResponseFormat()
 }
 
 // GetOneAnswer is the resolver for the GetOneAnswer field.
@@ -144,17 +118,10 @@ func (r *queryResolver) GetOneAnswer(ctx context.Context, id string) (*models.Re
 	answer, err := r.AnsRepository.GetAnswerByID(id)
 	if err != nil {
 		log.Println("getting answer error: ", err)
-		return &models.Response{
-			Message: "Something went wrong getting the answer.",
-			Status:  http.StatusInternalServerError,
-		}, nil
+		return error_handlers.PanicException(error_handlers.InternalError)
 	}
 
-	return &models.Response{
-		Message: "Successfully retrieved answer",
-		Status:  http.StatusOK,
-		Data:    answer,
-	}, nil
+	return helpers.ResponseDataFormat(answer, "Answer")
 }
 
 // GetAllQuestionAnswers is the resolver for the GetAllQuestionAnswers field.
@@ -164,10 +131,7 @@ func (r *queryResolver) GetAllQuestionAnswers(ctx context.Context, questionID st
 	answers, err := r.AnsRepository.GetAllQuestionAnswers(questionID)
 	if err != nil {
 		log.Println("getting all questions error: ", err)
-		return &models.ListResponse{
-			Message: "Something went wrong getting all questions.",
-			Status:  http.StatusInternalServerError,
-		}, nil
+		return error_handlers.ListPanicException(error_handlers.InternalError)
 	}
 
 	var data []models.Data
@@ -175,9 +139,5 @@ func (r *queryResolver) GetAllQuestionAnswers(ctx context.Context, questionID st
 		data = append(data, models.Data(*ans))
 	}
 
-	return &models.ListResponse{
-		Message: "Successfully retrieved all answers",
-		Status:  http.StatusOK,
-		Data:    data,
-	}, nil
+	return helpers.ListResponseDataFormat(data, "Answers")
 }

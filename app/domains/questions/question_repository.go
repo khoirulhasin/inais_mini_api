@@ -81,6 +81,5 @@ func (s *quesRepository) GetAllQuestions() ([]*models.Question, error) {
 	if err != nil {
 		return nil, err
 	}
-
 	return questions, nil
 }
