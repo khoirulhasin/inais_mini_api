@@ -27,6 +27,7 @@ type GeofenceDB struct {
 	CreatedAt   int64                 `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
 	UpdatedAt   int64                 `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
 	DeletedAt   soft_delete.DeletedAt `json:"deletedAt" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	DeletedBy   *int                  `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
 }
 
 func (GeofenceDB) TableName() string { return "geofences" }

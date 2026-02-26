@@ -62,11 +62,23 @@ func (r *geofenceRepository) UpdateGeofenceByUUID(ctx context.Context, uuid stri
 }
 
 func (r *geofenceRepository) DeleteGeofence(ctx context.Context, id int32) error {
-	return r.db.WithContext(ctx).Where("id = ?", id).Delete(&GeofenceDB{}).Error
+	g := &GeofenceDB{}
+	err := r.db.WithContext(ctx).Where("id = ?", id).Delete(g).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *geofenceRepository) DeleteGeofenceByUUID(ctx context.Context, uuid string) error {
-	return r.db.WithContext(ctx).Where("uuid = ?", uuid).Delete(&GeofenceDB{}).Error
+	g := &GeofenceDB{}
+	err := r.db.WithContext(ctx).Where("uuid = ?", uuid).Delete(g).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (r *geofenceRepository) GetGeofenceByID(ctx context.Context, id int32) (*GeofenceDB, error) {
