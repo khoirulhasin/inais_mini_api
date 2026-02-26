@@ -77,9 +77,18 @@ func (r *mutationResolver) UpdateGeofenceByUUID(ctx context.Context, uuid uuid.U
 }
 
 func (r *mutationResolver) DeleteGeofence(ctx context.Context, id int) (interface{}, error) {
-	return true, r.GeofenceRepository.DeleteGeofence(ctx, int32(id))
+	err := r.GeofenceRepository.DeleteGeofence(ctx, int32(id))
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
 }
 
+// DeleteGeofenceByUUID is the resolver for the DeleteGeofenceByUuid field.
 func (r *mutationResolver) DeleteGeofenceByUUID(ctx context.Context, uuid uuid.UUID) (interface{}, error) {
-	return true, r.GeofenceRepository.DeleteGeofenceByUUID(ctx, uuid.String())
+	err := r.GeofenceRepository.DeleteGeofenceByUUID(ctx, uuid.String())
+	if err != nil {
+		return nil, err
+	}
+	return nil, nil
 }

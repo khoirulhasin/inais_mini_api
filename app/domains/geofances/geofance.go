@@ -21,12 +21,12 @@ type GeofenceDB struct {
 	GeoType     string                `json:"geoType" gorm:"column:geo_type;not null"`
 	Coordinates GeoJSONCoords         `json:"coordinates" gorm:"column:coordinates;type:jsonb;not null"`
 	Radius      *float64              `json:"radius" gorm:"column:radius"`
-	IsActive    bool                  `json: "isActive" gorm:"column:is_active;default:true"`
-	CreatedBy   int                   `json: "createdBy" gorm:"column:created_by"`
-	UpdatedBy   *int                  `json: "updatedBy" gorm:"column:updated_by"`
-	CreatedAt   int64                 `json: "createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
-	UpdatedAt   int64                 `json: "updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
-	DeletedAt   soft_delete.DeletedAt `json: "deletedAt" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	IsActive    bool                  `json:"isActive" gorm:"column:is_active;default:true"`
+	CreatedBy   int                   `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy   *int                  `json:"updatedBy" gorm:"column:updated_by"`
+	CreatedAt   int64                 `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt   int64                 `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt   soft_delete.DeletedAt `json:"deletedAt" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
 }
 
 func (GeofenceDB) TableName() string { return "geofences" }
