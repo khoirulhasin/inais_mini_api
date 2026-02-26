@@ -1,15 +1,78 @@
 scalar Time
 
+scalar Any
+
+scalar UUID
+
+scalar Int32
+
+scalar Int64
+
+scalar BigNumber
+
+scalar DeletedAt
+
+
+directive @validate(
+  required: Boolean = false, 
+  email: Boolean = false, 
+  username: Boolean = false,
+  password: Boolean = false,
+  integer: Boolean = false
+  ) on INPUT_FIELD_DEFINITION
+
+directive @hasRole(roles: [RoleEnum!]!) on FIELD_DEFINITION  | QUERY | MUTATION
+directive @auth on FIELD_DEFINITION | QUERY | MUTATION
+
 type Response {
+    errors: Any
     message: String!
     status: Int!
-    data: Data
+    data: Any
 }
 
-type ListResponse {
-    message: String!
-    status: Int!
-    data: [Data]
+enum RoleEnum {
+    ADMIN
+    OPERATOR
+    USER
+    DRIVER
 }
 
-union Data = Answer | Question | QuestionOption
+input FilterInput {
+  key: String!
+  value: Any!
+  operator: String!
+}
+
+type Filter {
+  key: String!
+  value: Any!
+  operator: String!
+}
+
+type Pagination {
+    limit: Int         
+    offset: Int        
+    sortField: String     
+    sortOrder: String     
+    sort: String      
+    search: String    
+    totalRows: Int64!       
+    totalPages: Int64!
+    filters: [Filter!]!   
+    rows: [Any]!
+}
+
+input PageInput {
+  limit: Int64
+  offset: Int64
+  sortField: String
+  sortOrder: String
+  search: String
+  filters: [FilterInput!]
+}
+
+input DurationTimeInput {
+  start: Int64!
+  end: Int64!
+}

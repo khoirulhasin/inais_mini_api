@@ -141,6 +141,9 @@ models:
   UUID:
     model:
       - github.com/99designs/gqlgen/graphql.UUID
+  BigNumber:
+    model:
+      -  github.com/khoirulhasin/untirta_api/app/scalars.BigNumber
 
   # The GraphQL spec explicitly states that the Int type is a signed 32-bit
   # integer. Using Go int or int64 to represent it can lead to unexpected
@@ -151,10 +154,16 @@ models:
   # integers, or ignore the spec and bind Int to graphql.Int / graphql.Int64
   # (the default behavior of gqlgen). This is fine in simple use cases when you
   # do not need to worry about interoperability and only expect small numbers.
-  Int:
+  Int32:
     model:
       - github.com/99designs/gqlgen/graphql.Int32
-  Int64:
+  Int:
     model:
       - github.com/99designs/gqlgen/graphql.Int
+  Int64:
+    model:
       - github.com/99designs/gqlgen/graphql.Int64
+  DeletedAt:
+    model:
+      -  github.com/khoirulhasin/untirta_api/app/scalars.DeletedAt
+

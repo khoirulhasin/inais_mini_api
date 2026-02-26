@@ -1,0 +1,95 @@
+type User {
+  id: Int!
+  uuid: UUID!
+  username: String!
+  email: String!
+  password: String!
+  loggedAt: Int
+  roleId: Int
+  role: Role
+  profile: Profile
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+
+input CreateUserInput {
+  username: String!  @validate(required: true, username: true)
+  email: String! @validate(required: true, email: true)
+  password: String! @validate(required: true, password: true)
+  roleId: Int! @validate(required: true, password: true)
+}
+
+
+input UpdateUserInput {
+  username: String!  @validate(required: true, username: true)
+  email: String! @validate(required: true, email: true)
+}
+
+input CreateUserOwnerInput {
+  username: String!  @validate(required: true, username: true)
+  email: String! @validate(required: true, email: true)
+  password: String! @validate(required: true, password: true)
+  name: String! @validate(required: true)
+  address: String
+}
+
+input UpdateUserOwnerInput {
+  username: String!  @validate(required: true, username: true)
+  email: String! @validate(required: true, email: true)
+  name: String! @validate(required: true)
+  address: String
+}
+
+input UpdateUserProfileInput {
+  username: String!  @validate(required: true, username: true)
+  email: String! @validate(required: true, email: true)
+  name: String! @validate(required: true)
+  address: String
+}
+
+input LoginInput {
+  account: String!  @validate(required: true)
+  password: String! @validate(required: true, password: true)
+}
+
+input ChangePasswordInput {
+  newPassword: String!  @validate(required: true, password: true)
+  oldPassword: String! @validate(required: true, password: true)
+}
+
+input PasswordInput {
+  password: String!  @validate(required: true, password: true)
+}
+
+
+
+extend type Mutation {
+  Login(loginInput: LoginInput): Any
+  CreateUser(createUserInput: CreateUserInput!): Any @auth @hasRole(roles: [ADMIN])
+  CreateUserOwner(createUserOwnerInput: CreateUserOwnerInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateUser(id: Int!, updateUserInput: UpdateUserInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateUserByUuid(uuid: UUID!, updateUserInput: UpdateUserInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateUserOwner(id: Int!, updateUserOwnerInput: UpdateUserOwnerInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateUserOwnerByUuid(uuid: UUID!, updateUserOwnerInput: UpdateUserOwnerInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateUserProfile(id: Int!, updateUserProfileInput: UpdateUserProfileInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateUserProfileByUuid(uuid: UUID!, updateUserProfileInput: UpdateUserProfileInput!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteUser(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteUserByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+  ChangePassword(changePasswordInput: ChangePasswordInput!): Any @auth @hasRole(roles: [ADMIN, OPERATOR, USER, DRIVER])  
+  UpdatePassword(id: Int!, passwordInput: PasswordInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdatePasswordByUuid(uuid: UUID!, passwordInput: PasswordInput!): Any @auth @hasRole(roles: [ADMIN])
+}
+
+extend type Query {
+  GetUser: Any
+  GetOneUser(id: Int!): Any @auth @hasRole(roles: [ADMIN, OPERATOR, USER, DRIVER]) 
+  GetOneUserByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN, OPERATOR, USER, DRIVER]) 
+  GetAllUsers: [Any] @auth @hasRole(roles: [ADMIN, OPERATOR, USER]) 
+  PageUser(pageInput: PageInput): Pagination @auth @hasRole(roles: [ADMIN, OPERATOR, USER]) 
+  PageUserByRoleIds(pageInput: PageInput, roleIds: [Int]): Pagination @auth @hasRole(roles: [ADMIN, OPERATOR, USER]) 
+}

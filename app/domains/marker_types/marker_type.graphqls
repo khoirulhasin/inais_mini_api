@@ -1,0 +1,40 @@
+type MarkerType {
+  id: Int!
+  uuid: UUID!
+  name: String!
+  icon: String!
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateMarkerTypeInput {
+  name: String! @validate(required: true)
+  icon: String! @validate(required: true)
+}
+
+input UpdateMarkerTypeInput {
+  name: String! @validate(required: true)
+  icon: String! @validate(required: true)
+}
+
+
+
+extend type Mutation {
+  CreateMarkerType(createMarkerTypeInput: CreateMarkerTypeInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateMarkerType(id: Int!, updateMarkerTypeInput: UpdateMarkerTypeInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateMarkerTypeByUuid(uuid: UUID!, updateMarkerTypeInput: UpdateMarkerTypeInput): Any @auth @hasRole(roles: [ADMIN])
+  DeleteMarkerType(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteMarkerTypeByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+    
+}
+
+extend type Query {
+  GetOneMarkerType(id: Int!): Any
+  GetOneMarkerTypeByUuid(uuid: UUID!): Any
+  GetAllMarkerTypes: [Any]
+  PageMarkerType(pageInput: PageInput): Pagination
+}

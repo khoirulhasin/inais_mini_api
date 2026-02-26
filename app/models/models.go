@@ -3,71 +3,530 @@
 package models
 
 import (
-	"time"
+	"bytes"
+	"fmt"
+	"io"
+	"strconv"
+
+	"github.com/google/uuid"
+	"gorm.io/plugin/soft_delete"
 )
 
-type Data interface {
-	IsData()
+type Cam struct {
+	ID        int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID      uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	Name      string                 `json:"name" gorm:"index:idx_cam_name;column:name"`
+	Code      string                 `json:"code" gorm:"uniqueIndex:idx_cam_code,WHERE:deleted_at=0;column:code"`
+	Source    string                 `json:"source" gorm:"column:source"`
+	RunOnInit *string                `json:"runOnInit,omitempty" gorm:"column:run_on_init"`
+	CreatedAt int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
 }
 
-type Answer struct {
-	ID         string    `json:"id"`
-	QuestionID string    `json:"questionId"`
-	OptionID   string    `json:"optionId"`
-	IsCorrect  bool      `json:"isCorrect"`
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
+type ChangePasswordInput struct {
+	NewPassword string `json:"newPassword" gorm:"column:new_password"`
+	OldPassword string `json:"oldPassword" gorm:"column:old_password"`
 }
 
-func (Answer) IsData() {}
+type CreateCamInput struct {
+	Name      string  `json:"name" gorm:"index:idx_createcaminput_name;column:name"`
+	Code      string  `json:"code" gorm:"uniqueIndex:idx_createcaminput_code,WHERE:deleted_at=0;column:code"`
+	Source    string  `json:"source" gorm:"column:source"`
+	RunOnInit *string `json:"runOnInit,omitempty" gorm:"column:run_on_init"`
+}
 
-type ListResponse struct {
-	Message string `json:"message"`
-	Status  int32  `json:"status"`
-	Data    []Data `json:"data,omitempty"`
+type CreateDeviceInput struct {
+	Imei    string `json:"imei" gorm:"uniqueIndex:idx_createdeviceinput_imei,WHERE:deleted_at=0;column:imei"`
+	Name    string `json:"name" gorm:"index:idx_createdeviceinput_name;column:name"`
+	OwnerID *int   `json:"ownerId,omitempty" gorm:"column:owner_id"`
+	ShipID  *int   `json:"shipId,omitempty" gorm:"column:ship_id"`
+}
+
+type CreateDriveInput struct {
+	DriverID    int     `json:"driverId" gorm:"column:driver_id"`
+	ShipID      int     `json:"shipId" gorm:"column:ship_id"`
+	Description *string `json:"description,omitempty" gorm:"column:description"`
+}
+
+type CreateDriverInput struct {
+	Name             string  `json:"name" gorm:"index:idx_createdriverinput_name;column:name"`
+	NumberIdentifier string  `json:"numberIdentifier" gorm:"column:number_identifier"`
+	Address          *string `json:"address,omitempty" gorm:"column:address"`
+}
+
+type CreateMarkerInput struct {
+	Title        string             `json:"title" gorm:"column:title"`
+	Lat          float64            `json:"lat" gorm:"column:lat"`
+	Lng          float64            `json:"lng" gorm:"column:lng"`
+	Duration     *DurationTimeInput `json:"duration"`
+	MarkerTypeID int                `json:"markerTypeId" gorm:"column:marker_type_id"`
+	Description  *string            `json:"description,omitempty" gorm:"column:description"`
+}
+
+type CreateMarkerTypeInput struct {
+	Name string `json:"name" gorm:"index:idx_createmarkertypeinput_name;column:name"`
+	Icon string `json:"icon" gorm:"column:icon"`
+}
+
+type CreateMenuInput struct {
+	Code     string  `json:"code" gorm:"uniqueIndex:idx_createmenuinput_code,WHERE:deleted_at=0;column:code"`
+	Name     string  `json:"name" gorm:"index:idx_createmenuinput_name;column:name"`
+	URL      *string `json:"url,omitempty" gorm:"column:url"`
+	Level    *int    `json:"level,omitempty" gorm:"column:level"`
+	MenuID   *int    `json:"menuId,omitempty" gorm:"column:menu_id"`
+	Sequence *int    `json:"sequence,omitempty" gorm:"column:sequence"`
+	Show     *int    `json:"show,omitempty" gorm:"column:show"`
+	Icon     *string `json:"icon,omitempty" gorm:"column:icon"`
+}
+
+type CreateMenus2roleInput struct {
+	MenuID int `json:"menuId" gorm:"column:menu_id"`
+	RoleID int `json:"roleId" gorm:"column:role_id"`
+}
+
+type CreateProfileInput struct {
+	Name    string  `json:"name" gorm:"index:idx_createprofileinput_name;column:name"`
+	UserID  int     `json:"userId" gorm:"column:user_id"`
+	Address *string `json:"address,omitempty" gorm:"column:address"`
+}
+
+type CreateRoleInput struct {
+	Code string `json:"code" gorm:"uniqueIndex:idx_createroleinput_code,WHERE:deleted_at=0;column:code"`
+	Name string `json:"name" gorm:"index:idx_createroleinput_name;column:name"`
+}
+
+type CreateShipInput struct {
+	Name        string  `json:"name" gorm:"index:idx_createshipinput_name;column:name"`
+	Number      *string `json:"number,omitempty" gorm:"column:number"`
+	Description *string `json:"description,omitempty" gorm:"column:description"`
+}
+
+type CreateUserInput struct {
+	Username string `json:"username" gorm:"uniqueIndex:idx_createuserinput_username,WHERE:deleted_at=0;column:username"`
+	Email    string `json:"email" gorm:"uniqueIndex:idx_createuserinput_email,WHERE:deleted_at=0;column:email"`
+	Password string `json:"password" gorm:"column:password"`
+	RoleID   int    `json:"roleId" gorm:"column:role_id"`
+}
+
+type CreateUserOwnerInput struct {
+	Username string  `json:"username" gorm:"uniqueIndex:idx_createuserownerinput_username,WHERE:deleted_at=0;column:username"`
+	Email    string  `json:"email" gorm:"uniqueIndex:idx_createuserownerinput_email,WHERE:deleted_at=0;column:email"`
+	Password string  `json:"password" gorm:"column:password"`
+	Name     string  `json:"name" gorm:"index:idx_createuserownerinput_name;column:name"`
+	Address  *string `json:"address,omitempty" gorm:"column:address"`
+}
+
+type CreateUsers2roleInput struct {
+	UserID int `json:"userId" gorm:"column:user_id"`
+	RoleID int `json:"roleId" gorm:"column:role_id"`
+}
+
+type Device struct {
+	ID        int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID      uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	Imei      string                 `json:"imei" gorm:"uniqueIndex:idx_device_imei,WHERE:deleted_at=0;column:imei"`
+	Name      string                 `json:"name" gorm:"index:idx_device_name;column:name"`
+	OwnerID   *int                   `json:"ownerId,omitempty" gorm:"column:owner_id"`
+	Owner     *User                  `json:"owner,omitempty" gorm:"foreignKey:OwnerID;references:ID"`
+	ShipID    *int                   `json:"shipId,omitempty" gorm:"column:ship_id"`
+	Ship      *Ship                  `json:"ship,omitempty"`
+	CreatedAt int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
+type Drive struct {
+	ID          int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID        uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	DriverID    int                    `json:"driverId" gorm:"column:driver_id"`
+	Driver      *Driver                `json:"driver"`
+	ShipID      int                    `json:"shipId" gorm:"column:ship_id"`
+	Ship        *Ship                  `json:"ship"`
+	Description *string                `json:"description,omitempty" gorm:"column:description"`
+	CreatedAt   int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt   int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt   *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy   int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy   *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy   *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
+type Driver struct {
+	ID               int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID             uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	Name             string                 `json:"name" gorm:"index:idx_driver_name;column:name"`
+	NumberIdentifier string                 `json:"numberIdentifier" gorm:"column:number_identifier"`
+	Address          *string                `json:"address,omitempty" gorm:"column:address"`
+	CreatedAt        int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt        int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt        *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy        int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy        *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy        *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
+type DurationTimeInput struct {
+	Start int64 `json:"start" gorm:"column:start"`
+	End   int64 `json:"end" gorm:"column:end"`
+}
+
+type Filter struct {
+	Key      string `json:"key" gorm:"column:key"`
+	Value    any    `json:"value" gorm:"column:value"`
+	Operator string `json:"operator" gorm:"column:operator"`
+}
+
+type FilterInput struct {
+	Key      string `json:"key" gorm:"column:key"`
+	Value    any    `json:"value" gorm:"column:value"`
+	Operator string `json:"operator" gorm:"column:operator"`
+}
+
+type LoginInput struct {
+	Account  string `json:"account" gorm:"column:account"`
+	Password string `json:"password" gorm:"column:password"`
+}
+
+type Marker struct {
+	ID           int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID         uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	Title        string                 `json:"title" gorm:"column:title"`
+	Lat          float64                `json:"lat" gorm:"column:lat"`
+	Lng          float64                `json:"lng" gorm:"column:lng"`
+	Start        int64                  `json:"start" gorm:"column:start"`
+	End          int64                  `json:"end" gorm:"column:end"`
+	MarkerTypeID int                    `json:"markerTypeId" gorm:"column:marker_type_id"`
+	MarkerType   *MarkerType            `json:"markerType"`
+	Description  *string                `json:"description,omitempty" gorm:"column:description"`
+	CreatedAt    int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt    int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt    *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy    int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy    *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy    *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
+type MarkerType struct {
+	ID        int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID      uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	Name      string                 `json:"name" gorm:"index:idx_markertype_name;column:name"`
+	Icon      string                 `json:"icon" gorm:"column:icon"`
+	CreatedAt int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
+type Menu struct {
+	ID        int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID      uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	Name      string                 `json:"name" gorm:"index:idx_menu_name;column:name"`
+	Code      string                 `json:"code" gorm:"uniqueIndex:idx_menu_code,WHERE:deleted_at=0;column:code"`
+	URL       *string                `json:"url,omitempty" gorm:"column:url"`
+	Level     *int                   `json:"level,omitempty" gorm:"column:level"`
+	MenuID    *int                   `json:"menuId,omitempty" gorm:"column:menu_id"`
+	Menus     []*Menu                `json:"menus,omitempty"`
+	Sequence  *int                   `json:"sequence,omitempty" gorm:"column:sequence"`
+	Show      *int                   `json:"show,omitempty" gorm:"column:show"`
+	Icon      *string                `json:"icon,omitempty" gorm:"column:icon"`
+	CreatedAt int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
+type Menus2role struct {
+	ID        int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID      uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	RoleID    int                    `json:"roleId" gorm:"column:role_id"`
+	Role      *Role                  `json:"role"`
+	MenuID    int                    `json:"menuId" gorm:"column:menu_id"`
+	Menu      *Menu                  `json:"menu"`
+	CreatedAt int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
 }
 
 type Mutation struct {
 }
 
+type PageInput struct {
+	Limit     *int64         `json:"limit,omitempty" gorm:"column:limit"`
+	Offset    *int64         `json:"offset,omitempty" gorm:"column:offset"`
+	SortField *string        `json:"sortField,omitempty" gorm:"column:sort_field"`
+	SortOrder *string        `json:"sortOrder,omitempty" gorm:"column:sort_order"`
+	Search    *string        `json:"search,omitempty" gorm:"column:search"`
+	Filters   []*FilterInput `json:"filters,omitempty" gorm:"column:filters"`
+}
+
+type Pagination struct {
+	Limit      *int      `json:"limit,omitempty" gorm:"column:limit"`
+	Offset     *int      `json:"offset,omitempty" gorm:"column:offset"`
+	SortField  *string   `json:"sortField,omitempty" gorm:"column:sort_field"`
+	SortOrder  *string   `json:"sortOrder,omitempty" gorm:"column:sort_order"`
+	Sort       *string   `json:"sort,omitempty" gorm:"column:sort"`
+	Search     *string   `json:"search,omitempty" gorm:"column:search"`
+	TotalRows  int64     `json:"totalRows" gorm:"column:total_rows"`
+	TotalPages int64     `json:"totalPages" gorm:"column:total_pages"`
+	Filters    []*Filter `json:"filters" gorm:"column:filters"`
+	Rows       []any     `json:"rows" gorm:"column:rows"`
+}
+
+type PasswordInput struct {
+	Password string `json:"password" gorm:"column:password"`
+}
+
+type Profile struct {
+	ID        int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID      uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	Name      string                 `json:"name" gorm:"index:idx_profile_name;column:name"`
+	UserID    int                    `json:"userId" gorm:"column:user_id"`
+	User      *User                  `json:"user"`
+	Address   *string                `json:"address,omitempty" gorm:"column:address"`
+	CreatedAt int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
 type Query struct {
 }
 
-type Question struct {
-	ID             string            `json:"id"`
-	Title          string            `json:"title"`
-	QuestionOption []*QuestionOption `json:"questionOption,omitempty"`
-	CreatedAt      time.Time         `json:"createdAt"`
-	UpdatedAt      time.Time         `json:"updatedAt"`
-}
-
-func (Question) IsData() {}
-
-type QuestionInput struct {
-	Title   string                 `json:"title"`
-	Options []*QuestionOptionInput `json:"options"`
-}
-
-type QuestionOption struct {
-	ID         string    `json:"id"`
-	QuestionID string    `json:"questionId"`
-	Title      string    `json:"title"`
-	Position   int32     `json:"position"`
-	IsCorrect  bool      `json:"isCorrect"`
-	CreatedAt  time.Time `json:"createdAt"`
-	UpdatedAt  time.Time `json:"updatedAt"`
-}
-
-func (QuestionOption) IsData() {}
-
-type QuestionOptionInput struct {
-	Title     string `json:"title"`
-	Position  int32  `json:"position"`
-	IsCorrect bool   `json:"isCorrect"`
-}
-
 type Response struct {
-	Message string `json:"message"`
-	Status  int32  `json:"status"`
-	Data    Data   `json:"data,omitempty"`
+	Errors  any    `json:"errors,omitempty" gorm:"column:errors"`
+	Message string `json:"message" gorm:"column:message"`
+	Status  int    `json:"status" gorm:"column:status"`
+	Data    any    `json:"data,omitempty" gorm:"column:data"`
+}
+
+type Role struct {
+	ID        int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID      uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	Code      string                 `json:"code" gorm:"uniqueIndex:idx_role_code,WHERE:deleted_at=0;column:code"`
+	Name      string                 `json:"name" gorm:"index:idx_role_name;column:name"`
+	CreatedAt int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
+type Ship struct {
+	ID          int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID        uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	Name        string                 `json:"name" gorm:"index:idx_ship_name;column:name"`
+	Number      *string                `json:"number,omitempty" gorm:"column:number"`
+	Description *string                `json:"description,omitempty" gorm:"column:description"`
+	CreatedAt   int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt   int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt   *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy   int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy   *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy   *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
+type UpdateCamInput struct {
+	Name      string  `json:"name" gorm:"index:idx_updatecaminput_name;column:name"`
+	Code      string  `json:"code" gorm:"uniqueIndex:idx_updatecaminput_code,WHERE:deleted_at=0;column:code"`
+	Source    string  `json:"source" gorm:"column:source"`
+	RunOnInit *string `json:"runOnInit,omitempty" gorm:"column:run_on_init"`
+}
+
+type UpdateDeviceInput struct {
+	Imei    string `json:"imei" gorm:"uniqueIndex:idx_updatedeviceinput_imei,WHERE:deleted_at=0;column:imei"`
+	Name    string `json:"name" gorm:"index:idx_updatedeviceinput_name;column:name"`
+	OwnerID *int   `json:"ownerId,omitempty" gorm:"column:owner_id"`
+	ShipID  *int   `json:"shipId,omitempty" gorm:"column:ship_id"`
+}
+
+type UpdateDriveInput struct {
+	DriverID    int     `json:"driverId" gorm:"column:driver_id"`
+	ShipID      int     `json:"shipId" gorm:"column:ship_id"`
+	Description *string `json:"description,omitempty" gorm:"column:description"`
+}
+
+type UpdateDriverInput struct {
+	Name             string  `json:"name" gorm:"index:idx_updatedriverinput_name;column:name"`
+	NumberIdentifier string  `json:"numberIdentifier" gorm:"column:number_identifier"`
+	Address          *string `json:"address,omitempty" gorm:"column:address"`
+}
+
+type UpdateMarkerInput struct {
+	Title        string             `json:"title" gorm:"column:title"`
+	Lat          float64            `json:"lat" gorm:"column:lat"`
+	Lng          float64            `json:"lng" gorm:"column:lng"`
+	Duration     *DurationTimeInput `json:"duration"`
+	MarkerTypeID int                `json:"markerTypeId" gorm:"column:marker_type_id"`
+	Description  *string            `json:"description,omitempty" gorm:"column:description"`
+}
+
+type UpdateMarkerTypeInput struct {
+	Name string `json:"name" gorm:"index:idx_updatemarkertypeinput_name;column:name"`
+	Icon string `json:"icon" gorm:"column:icon"`
+}
+
+type UpdateMenuInput struct {
+	Code     string  `json:"code" gorm:"uniqueIndex:idx_updatemenuinput_code,WHERE:deleted_at=0;column:code"`
+	Name     string  `json:"name" gorm:"index:idx_updatemenuinput_name;column:name"`
+	URL      *string `json:"url,omitempty" gorm:"column:url"`
+	Level    *int    `json:"level,omitempty" gorm:"column:level"`
+	MenuID   *int    `json:"menuId,omitempty" gorm:"column:menu_id"`
+	Sequence *int    `json:"sequence,omitempty" gorm:"column:sequence"`
+	Show     *int    `json:"show,omitempty" gorm:"column:show"`
+	Icon     *string `json:"icon,omitempty" gorm:"column:icon"`
+}
+
+type UpdateMenus2roleInput struct {
+	MenuID int `json:"menuId" gorm:"column:menu_id"`
+	RoleID int `json:"roleId" gorm:"column:role_id"`
+}
+
+type UpdateProfileInput struct {
+	Name    string  `json:"name" gorm:"index:idx_updateprofileinput_name;column:name"`
+	UserID  int     `json:"userId" gorm:"column:user_id"`
+	Address *string `json:"address,omitempty" gorm:"column:address"`
+}
+
+type UpdateRoleInput struct {
+	Code string `json:"code" gorm:"uniqueIndex:idx_updateroleinput_code,WHERE:deleted_at=0;column:code"`
+	Name string `json:"name" gorm:"index:idx_updateroleinput_name;column:name"`
+}
+
+type UpdateShipInput struct {
+	Name        string  `json:"name" gorm:"index:idx_updateshipinput_name;column:name"`
+	Number      *string `json:"number,omitempty" gorm:"column:number"`
+	Description *string `json:"description,omitempty" gorm:"column:description"`
+}
+
+type UpdateUserInput struct {
+	Username string `json:"username" gorm:"uniqueIndex:idx_updateuserinput_username,WHERE:deleted_at=0;column:username"`
+	Email    string `json:"email" gorm:"uniqueIndex:idx_updateuserinput_email,WHERE:deleted_at=0;column:email"`
+}
+
+type UpdateUserOwnerInput struct {
+	Username string  `json:"username" gorm:"uniqueIndex:idx_updateuserownerinput_username,WHERE:deleted_at=0;column:username"`
+	Email    string  `json:"email" gorm:"uniqueIndex:idx_updateuserownerinput_email,WHERE:deleted_at=0;column:email"`
+	Name     string  `json:"name" gorm:"index:idx_updateuserownerinput_name;column:name"`
+	Address  *string `json:"address,omitempty" gorm:"column:address"`
+}
+
+type UpdateUserProfileInput struct {
+	Username string  `json:"username" gorm:"uniqueIndex:idx_updateuserprofileinput_username,WHERE:deleted_at=0;column:username"`
+	Email    string  `json:"email" gorm:"uniqueIndex:idx_updateuserprofileinput_email,WHERE:deleted_at=0;column:email"`
+	Name     string  `json:"name" gorm:"index:idx_updateuserprofileinput_name;column:name"`
+	Address  *string `json:"address,omitempty" gorm:"column:address"`
+}
+
+type UpdateUsers2roleInput struct {
+	UserID int `json:"userId" gorm:"column:user_id"`
+	RoleID int `json:"roleId" gorm:"column:role_id"`
+}
+
+type User struct {
+	ID        int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID      uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	Username  string                 `json:"username" gorm:"uniqueIndex:idx_user_username,WHERE:deleted_at=0;column:username"`
+	Email     string                 `json:"email" gorm:"uniqueIndex:idx_user_email,WHERE:deleted_at=0;column:email"`
+	Password  string                 `json:"password" gorm:"column:password"`
+	LoggedAt  *int                   `json:"loggedAt,omitempty" gorm:"column:logged_at"`
+	RoleID    *int                   `json:"roleId,omitempty" gorm:"column:role_id"`
+	Role      *Role                  `json:"role,omitempty"`
+	Profile   *Profile               `json:"profile,omitempty"`
+	CreatedAt int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
+type Users2role struct {
+	ID        int                    `json:"id" gorm:"column:id;uniqueIndex;primaryKey;autoIcrement"`
+	UUID      uuid.UUID              `json:"uuid" gorm:"column:uuid;uniqueIndex;type:uuid;default:uuid_generate_v4()"`
+	UserID    int                    `json:"userId" gorm:"column:user_id"`
+	User      *User                  `json:"user"`
+	RoleID    int                    `json:"roleId" gorm:"column:role_id"`
+	Role      *Role                  `json:"role"`
+	CreatedAt int64                  `json:"createdAt" gorm:"column:created_at;type:bigint;autoCreateTime:milli"`
+	UpdatedAt int64                  `json:"updatedAt" gorm:"column:updated_at;type:bigint;autoUpdateTime:milli"`
+	DeletedAt *soft_delete.DeletedAt `json:"deletedAt,omitempty" gorm:"column:deleted_at;type:bigint;softDelete:milli;default:0"`
+	CreatedBy int                    `json:"createdBy" gorm:"column:created_by"`
+	UpdatedBy *int                   `json:"updatedBy,omitempty" gorm:"column:updated_by"`
+	DeletedBy *int                   `json:"deletedBy,omitempty" gorm:"column:deleted_by"`
+}
+
+type RoleEnum string
+
+const (
+	RoleEnumAdmin    RoleEnum = "ADMIN"
+	RoleEnumOperator RoleEnum = "OPERATOR"
+	RoleEnumUser     RoleEnum = "USER"
+	RoleEnumDriver   RoleEnum = "DRIVER"
+)
+
+var AllRoleEnum = []RoleEnum{
+	RoleEnumAdmin,
+	RoleEnumOperator,
+	RoleEnumUser,
+	RoleEnumDriver,
+}
+
+func (e RoleEnum) IsValid() bool {
+	switch e {
+	case RoleEnumAdmin, RoleEnumOperator, RoleEnumUser, RoleEnumDriver:
+		return true
+	}
+	return false
+}
+
+func (e RoleEnum) String() string {
+	return string(e)
+}
+
+func (e *RoleEnum) UnmarshalGQL(v any) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = RoleEnum(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid RoleEnum", str)
+	}
+	return nil
+}
+
+func (e RoleEnum) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+func (e *RoleEnum) UnmarshalJSON(b []byte) error {
+	s, err := strconv.Unquote(string(b))
+	if err != nil {
+		return err
+	}
+	return e.UnmarshalGQL(s)
+}
+
+func (e RoleEnum) MarshalJSON() ([]byte, error) {
+	var buf bytes.Buffer
+	e.MarshalGQL(&buf)
+	return buf.Bytes(), nil
 }

@@ -5,8 +5,9 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/khoirulhasin/globe_tracker_api/app/dependencies"
-	"github.com/khoirulhasin/globe_tracker_api/app/infrastructures/middlewares"
+	"github.com/khoirulhasin/untirta_api/app/api/routes"
+	"github.com/khoirulhasin/untirta_api/app/dependencies"
+	"github.com/khoirulhasin/untirta_api/app/infrastructures/middlewares"
 	_ "github.com/lib/pq"
 )
 
@@ -20,9 +21,19 @@ func init() {
 func main() {
 
 	r := gin.Default()
-	r.Use(middlewares.GinContextToContextMiddleware())
 
-	r.POST("/query", dependencies.GraphqlHandler())
+	// Initialize GraphQL first untuk trigger dependency injection
+	// _ = dependencies.GraphqlHandler(r)
+
+	// GraphQL endpoints
+	r.POST("/query", middlewares.HeaderToContextMiddleware(), dependencies.GraphqlHandler(r))
 	r.GET("/", dependencies.PlaygroundHandler())
+
+	// Setup REST API routes
+	handlers := dependencies.GetHandlers()
+	if handlers != nil {
+		routes.SetupAllRoutes(r, handlers)
+	}
+
 	r.Run()
 }

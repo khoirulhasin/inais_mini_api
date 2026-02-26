@@ -1,0 +1,43 @@
+type Drive {
+  id: Int!
+  uuid: UUID!
+  driverId: Int!
+  driver: Driver!
+  shipId: Int!
+  ship: Ship!
+  description: String
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateDriveInput {
+  driverId: Int! @validate(required: true)
+  shipId: Int! @validate(required: true)
+  description: String
+}
+
+input UpdateDriveInput {
+  driverId: Int! @validate(required: true)
+  shipId: Int! @validate(required: true)
+  description: String
+}
+
+extend type Mutation {
+    CreateDrive(createDriveInput: CreateDriveInput!): Any
+    UpdateDrive(id: Int!, updateDriveInput: UpdateDriveInput!): Any
+    UpdateDriveByUuid(uuid: UUID!, updateDriveInput: UpdateDriveInput!): Any
+    DeleteDrive(id: Int!): Any
+    DeleteDriveByUuid(uuid: UUID!): Any
+    
+}
+
+extend type Query {
+    GetOneDrive(id: Int!): Any
+    GetOneDriveByUuid(uuid: UUID!): Any
+    GetAllDrives: [Any]
+    PageDrive(pageInput: PageInput): Pagination
+}

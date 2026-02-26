@@ -1,0 +1,42 @@
+type Menus2role {
+  id: Int!
+  uuid: UUID!
+  roleId: Int!
+  role: Role!
+  menuId: Int!
+  menu: Menu!
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateMenus2roleInput {
+  menuId: Int!  @validate(required: true)
+  roleId: Int! @validate(required: true)
+}
+
+input UpdateMenus2roleInput {
+  menuId: Int!  @validate(required: true)
+  roleId: Int! @validate(required: true)
+}
+
+
+extend type Mutation {
+  CreateMenus2role(createMenus2roleInput: CreateMenus2roleInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateMenus2role(id: Int!, updateMenus2roleInput: UpdateMenus2roleInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateMenus2roleByUuid(uuid: UUID!, updateMenus2roleInput: UpdateMenus2roleInput!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteMenus2role(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteMenus2roleByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+    
+}
+
+extend type Query {
+  GetMenus2roleByMenuUuid(menuUuid: UUID!): [Any]
+  GetOneMenus2role(id: Int!): Any
+  GetOneMenus2roleByUuid(uuid: UUID!): Any
+  GetAllMenus2roles: [Any]
+  PageMenus2role(pageInput: PageInput): Pagination
+}

@@ -1,0 +1,43 @@
+type Users2role {
+  id: Int!
+  uuid: UUID!
+  userId: Int!
+  user: User!
+  roleId: Int!
+  role: Role!
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateUsers2roleInput {
+  userId: Int!  @validate(required: true, integer: true)
+  roleId: Int! @validate(required: true, integer: true)
+}
+
+input UpdateUsers2roleInput {
+  userId: Int!  @validate(required: true, integer: true)
+  roleId: Int! @validate(required: true, integer: true)
+}
+
+
+extend type Mutation {
+  CreateUsers2role(createUsers2roleInput: CreateUsers2roleInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateUsers2role(id: Int!, updateUsers2roleInput: UpdateUsers2roleInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateUsers2roleByUuid(uuid: UUID!, updateUsers2roleInput: UpdateUsers2roleInput): Any @auth @hasRole(roles: [ADMIN])
+  DeleteUsers2role(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteUsers2roleByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+    
+}
+
+extend type Query {
+  GetUsers2roleByUserUuid(userUuid: UUID!): [Any]
+  GetOneUsers2role(id: Int!): Any
+  GetOneUsers2roleByUuid(uuid: UUID!): Any
+  GetUsers2roleByRoleId(roleId: Int!): [Any]
+  GetAllUsers2roles: [Any]
+  PageUsers2role(pageInput: PageInput): Pagination
+}

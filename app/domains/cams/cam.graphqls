@@ -1,0 +1,45 @@
+type Cam {
+  id: Int!
+  uuid: UUID!
+  name: String!
+  code: String!
+  source: String!
+  runOnInit: String
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateCamInput {
+  name: String! @validate(required: true)
+  code: String! @validate(required: true)
+  source: String! @validate(required: true)
+  runOnInit: String
+}
+
+input UpdateCamInput {
+  name: String! @validate(required: true)
+  code: String! @validate(required: true)
+  source: String! @validate(required: true)
+  runOnInit: String
+}
+
+extend type Mutation {
+    CreateCam(createCamInput: CreateCamInput!): Any
+    UpdateCam(id: Int!, updateCamInput: UpdateCamInput!): Any
+    UpdateCamByUuid(uuid: UUID!, updateCamInput: UpdateCamInput!): Any
+    DeleteCam(id: Int!): Any
+    DeleteCamByUuid(uuid: UUID!): Any
+    
+}
+
+extend type Query {
+    GetOneCam(id: Int!): Any
+    GetOneCamByUuid(uuid: UUID!): Any
+    GetCamByStateId(stateId: Int!): [Any]
+    GetAllCams: [Any]
+    PageCam(pageInput: PageInput): Pagination
+}

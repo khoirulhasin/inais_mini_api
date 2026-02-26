@@ -1,0 +1,49 @@
+type Device {
+  id: Int!
+  uuid: UUID!
+  imei: String!
+  name: String!
+  ownerId: Int
+  owner: User
+  shipId: Int
+  ship: Ship
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateDeviceInput {
+  imei: String!  @validate(required: true)
+  name: String! @validate(required: true)
+  ownerId: Int
+  shipId: Int
+}
+
+input UpdateDeviceInput {
+  imei: String!  @validate(required: true)
+  name: String! @validate(required: true)
+  ownerId: Int
+  shipId: Int
+}
+
+
+
+extend type Mutation {
+  CreateDevice(createDeviceInput: CreateDeviceInput!): Any @auth @hasRole
+  (roles: [ADMIN])
+  UpdateDevice(id: Int!, updateDeviceInput: UpdateDeviceInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateDeviceByUuid(uuid: UUID!, updateDeviceInput: UpdateDeviceInput): Any @auth @hasRole(roles: [ADMIN])
+  DeleteDevice(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteDeviceByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+    
+}
+
+extend type Query {
+  GetOneDevice(id: Int!): Any
+  GetOneDeviceByUuid(uuid: UUID!): Any
+  GetAllDevices: [Any]
+  PageDevice(pageInput: PageInput): Pagination
+}

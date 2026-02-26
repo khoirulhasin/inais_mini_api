@@ -1,0 +1,42 @@
+type Driver {
+  id: Int!
+  uuid: UUID!
+  name: String!
+  numberIdentifier: String!
+  address: String
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateDriverInput {
+  name: String! @validate(required: true)
+  numberIdentifier: String! @validate(required: true)
+  address: String
+}
+
+input UpdateDriverInput {
+  name: String! @validate(required: true)
+  numberIdentifier: String! @validate(required: true)
+  address: String
+  
+}
+
+
+extend type Mutation {
+  CreateDriver(createDriverInput: CreateDriverInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateDriver(id: Int!, updateDriverInput: UpdateDriverInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateDriverByUuid(uuid: UUID!, updateDriverInput: UpdateDriverInput!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteDriver(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteDriverByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+}
+
+extend type Query {
+  GetOneDriver(id: Int!): Any
+  GetOneDriverByUuid(uuid: UUID!): Any
+  GetAllDrivers: [Any]
+  PageDriver(pageInput: PageInput): Pagination
+}

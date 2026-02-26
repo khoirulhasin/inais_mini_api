@@ -1,0 +1,44 @@
+type Ship {
+  id: Int!
+  uuid: UUID!
+  name: String!
+  number: String
+  description: String
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateShipInput {
+  name: String!
+  number: String
+  description: String
+}
+
+input UpdateShipInput {
+  name: String!
+  number: String
+  description: String
+}
+
+
+extend type Mutation {
+  CreateShip(createShipInput: CreateShipInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateShip(id: Int!, updateShipInput: UpdateShipInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateShipByUuid(uuid: UUID!, updateShipInput: UpdateShipInput!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteShip(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteShipByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+}
+
+extend type Query {
+  GetOneShip(id: Int!): Any
+  GetOneShipByUuid(uuid: UUID!): Any
+  GetAllShips: [Any]
+  GetAllBigShips: [Any]
+  GetShipsByDatetime(durationTimeInput: DurationTimeInput, mmsiList: [Int64!]!): [Any]
+  GetMobShips(durationTimeInput: DurationTimeInput): [Any]
+  PageShip(pageInput: PageInput): Pagination
+}

@@ -1,0 +1,55 @@
+type Marker {
+  id: Int!
+  uuid: UUID!
+  title: String!
+  lat: Float!
+  lng: Float!
+  start: Int64!
+  end: Int64!
+  markerTypeId: Int!
+  markerType: MarkerType!
+  description: String
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateMarkerInput {
+  title: String! @validate(required: true)
+  lat: Float! @validate(required: true)
+  lng: Float! @validate(required: true)
+  duration: DurationTimeInput! @validate(required: true)
+  markerTypeId: Int! @validate(required: true)
+  description: String
+}
+
+input UpdateMarkerInput {
+  title: String! @validate(required: true)
+  lat: Float! @validate(required: true)
+  lng: Float! @validate(required: true)
+  duration: DurationTimeInput! @validate(required: true)
+  markerTypeId: Int! @validate(required: true)
+  description: String
+}
+
+
+
+extend type Mutation {
+  CreateMarker(createMarkerInput: CreateMarkerInput!): Any @auth @hasRole
+  (roles: [ADMIN])
+  UpdateMarker(id: Int!, updateMarkerInput: UpdateMarkerInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateMarkerByUuid(uuid: UUID!, updateMarkerInput: UpdateMarkerInput): Any @auth @hasRole(roles: [ADMIN])
+  DeleteMarker(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteMarkerByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+    
+}
+
+extend type Query {
+  GetOneMarker(id: Int!): Any
+  GetOneMarkerByUuid(uuid: UUID!): Any
+  GetAllMarkers: [Any]
+  PageMarker(pageInput: PageInput): Pagination
+}

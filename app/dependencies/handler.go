@@ -5,10 +5,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GraphqlHandler() gin.HandlerFunc {
+func GraphqlHandler(r *gin.Engine) gin.HandlerFunc {
 	// NewExecutableSchema and Config are in the generated.go file
 	// Resolver is in the resolver.go file
-	h := Init()
+
+	h := Init(r)
 
 	// Server setup:
 

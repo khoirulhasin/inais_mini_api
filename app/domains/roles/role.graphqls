@@ -1,0 +1,40 @@
+type Role {
+  id: Int!
+  uuid: UUID!
+  code: String!
+  name: String!
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateRoleInput {
+  code: String!  @validate(required: true)
+  name: String! @validate(required: true)
+}
+
+input UpdateRoleInput {
+  code: String!  @validate(required: true)
+  name: String! @validate(required: true)
+}
+
+
+
+extend type Mutation {
+  CreateRole(createRoleInput: CreateRoleInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateRole(id: Int!, updateRoleInput: UpdateRoleInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateRoleByUuid(uuid: UUID!, updateRoleInput: UpdateRoleInput): Any @auth @hasRole(roles: [ADMIN])
+  DeleteRole(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteRoleByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+    
+}
+
+extend type Query {
+  GetOneRole(id: Int!): Any
+  GetOneRoleByUuid(uuid: UUID!): Any
+  GetAllRoles: [Any]
+  PageRole(pageInput: PageInput): Pagination
+}

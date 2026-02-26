@@ -1,0 +1,61 @@
+type Menu {
+  id: Int!
+  uuid: UUID!
+  name: String!
+  code: String!
+  url: String
+  level: Int
+  menuId: Int
+  menus: [Menu]
+  sequence: Int
+  show: Int
+  icon: String
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateMenuInput {
+  code: String!  @validate(required: true)
+  name: String! @validate(required: true)
+  url: String
+  level: Int
+  menuId: Int
+  sequence: Int
+  show: Int
+  icon: String
+}
+
+input UpdateMenuInput {
+  code: String!  @validate(required: true)
+  name: String! @validate(required: true)
+  url: String
+  level: Int
+  menuId: Int
+  sequence: Int
+  show: Int
+  icon: String
+}
+
+
+extend type Mutation {
+  CreateMenu(createMenuInput: CreateMenuInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateMenu(id: Int!, updateMenuInput: UpdateMenuInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateMenuByUuid(uuid: UUID!, updateMenuInput: UpdateMenuInput!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteMenu(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteMenuByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+    
+}
+
+extend type Query {
+  GetOneMenu(id: Int!): Any
+  GetOneMenuByUuid(uuid: UUID!): Any
+  GetAllMenus: [Any]
+  GetMenuParent(roleId: Int!): [Any]
+	GetMenuFlat(roleId: Int!): [Any]
+	GetMenuAllParents: [Any]
+  PageMenu(pageInput: PageInput): Pagination
+}

@@ -1,0 +1,42 @@
+type Profile {
+  id: Int!
+  uuid: UUID!
+  name: String!
+  userId: Int!
+  user: User!
+  address: String
+  createdAt:  Int64!
+  updatedAt:  Int64!
+  deletedAt: DeletedAt
+  createdBy: Int!
+  updatedBy: Int
+  deletedBy: Int
+}
+
+input CreateProfileInput {
+  name: String! @validate(required: true)
+  userId: Int! @validate(required: true)
+  address: String
+}
+
+input UpdateProfileInput {
+  name: String! @validate(required: true)
+  userId: Int! @validate(required: true)
+  address: String
+}
+
+
+extend type Mutation {
+  CreateProfile(createProfileInput: CreateProfileInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateProfile(id: Int!, updateProfileInput: UpdateProfileInput!): Any @auth @hasRole(roles: [ADMIN])
+  UpdateProfileByUuid(uuid: UUID!, updateProfileInput: UpdateProfileInput!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteProfile(id: Int!): Any @auth @hasRole(roles: [ADMIN])
+  DeleteProfileByUuid(uuid: UUID!): Any @auth @hasRole(roles: [ADMIN])
+}
+
+extend type Query {
+  GetOneProfile(id: Int!): Any
+  GetOneProfileByUuid(uuid: UUID!): Any
+  GetAllProfiles: [Any]
+  PageProfile(pageInput: PageInput): Pagination
+}
