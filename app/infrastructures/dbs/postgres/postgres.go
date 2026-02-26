@@ -7,6 +7,7 @@ import (
 
 	"os"
 
+	geofences "github.com/khoirulhasin/untirta_api/app/domains/geofances"
 	"github.com/khoirulhasin/untirta_api/app/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -77,5 +78,6 @@ func Automigrate(db *gorm.DB) error {
 		models.Ship{},
 		models.MarkerType{},
 		models.Cam{},
+		geofences.GeofenceDB{},
 	)
 }

@@ -193,6 +193,7 @@ type ComplexityRoot struct {
 		CreateDevice            func(childComplexity int, createDeviceInput models.CreateDeviceInput) int
 		CreateDrive             func(childComplexity int, createDriveInput models.CreateDriveInput) int
 		CreateDriver            func(childComplexity int, createDriverInput models.CreateDriverInput) int
+		CreateGeofence          func(childComplexity int, createGeofenceInput models.CreateGeofenceInput) int
 		CreateMarker            func(childComplexity int, createMarkerInput models.CreateMarkerInput) int
 		CreateMarkerType        func(childComplexity int, createMarkerTypeInput models.CreateMarkerTypeInput) int
 		CreateMenu              func(childComplexity int, createMenuInput models.CreateMenuInput) int
@@ -211,6 +212,8 @@ type ComplexityRoot struct {
 		DeleteDriveByUUID       func(childComplexity int, uuid uuid.UUID) int
 		DeleteDriver            func(childComplexity int, id int) int
 		DeleteDriverByUUID      func(childComplexity int, uuid uuid.UUID) int
+		DeleteGeofence          func(childComplexity int, id int) int
+		DeleteGeofenceByUUID    func(childComplexity int, uuid uuid.UUID) int
 		DeleteMarker            func(childComplexity int, id int) int
 		DeleteMarkerByUUID      func(childComplexity int, uuid uuid.UUID) int
 		DeleteMarkerType        func(childComplexity int, id int) int
@@ -238,6 +241,8 @@ type ComplexityRoot struct {
 		UpdateDriveByUUID       func(childComplexity int, uuid uuid.UUID, updateDriveInput models.UpdateDriveInput) int
 		UpdateDriver            func(childComplexity int, id int, updateDriverInput models.UpdateDriverInput) int
 		UpdateDriverByUUID      func(childComplexity int, uuid uuid.UUID, updateDriverInput models.UpdateDriverInput) int
+		UpdateGeofence          func(childComplexity int, id int, updateGeofenceInput models.UpdateGeofenceInput) int
+		UpdateGeofenceByUUID    func(childComplexity int, uuid uuid.UUID, updateGeofenceInput models.UpdateGeofenceInput) int
 		UpdateMarker            func(childComplexity int, id int, updateMarkerInput models.UpdateMarkerInput) int
 		UpdateMarkerByUUID      func(childComplexity int, uuid uuid.UUID, updateMarkerInput *models.UpdateMarkerInput) int
 		UpdateMarkerType        func(childComplexity int, id int, updateMarkerTypeInput models.UpdateMarkerTypeInput) int
@@ -298,6 +303,7 @@ type ComplexityRoot struct {
 		GetAllDevices           func(childComplexity int) int
 		GetAllDrivers           func(childComplexity int) int
 		GetAllDrives            func(childComplexity int) int
+		GetAllGeofences         func(childComplexity int) int
 		GetAllMarkerTypes       func(childComplexity int) int
 		GetAllMarkers           func(childComplexity int) int
 		GetAllMenus             func(childComplexity int) int
@@ -321,6 +327,8 @@ type ComplexityRoot struct {
 		GetOneDriveByUUID       func(childComplexity int, uuid uuid.UUID) int
 		GetOneDriver            func(childComplexity int, id int) int
 		GetOneDriverByUUID      func(childComplexity int, uuid uuid.UUID) int
+		GetOneGeofence          func(childComplexity int, id int) int
+		GetOneGeofenceByUUID    func(childComplexity int, uuid uuid.UUID) int
 		GetOneMarker            func(childComplexity int, id int) int
 		GetOneMarkerByUUID      func(childComplexity int, uuid uuid.UUID) int
 		GetOneMarkerType        func(childComplexity int, id int) int
@@ -347,6 +355,7 @@ type ComplexityRoot struct {
 		PageDevice              func(childComplexity int, pageInput *models.PageInput) int
 		PageDrive               func(childComplexity int, pageInput *models.PageInput) int
 		PageDriver              func(childComplexity int, pageInput *models.PageInput) int
+		PageGeofence            func(childComplexity int, pageInput *models.PageInput) int
 		PageMarker              func(childComplexity int, pageInput *models.PageInput) int
 		PageMarkerType          func(childComplexity int, pageInput *models.PageInput) int
 		PageMenu                func(childComplexity int, pageInput *models.PageInput) int
@@ -448,6 +457,11 @@ type MutationResolver interface {
 	UpdateDriveByUUID(ctx context.Context, uuid uuid.UUID, updateDriveInput models.UpdateDriveInput) (any, error)
 	DeleteDrive(ctx context.Context, id int) (any, error)
 	DeleteDriveByUUID(ctx context.Context, uuid uuid.UUID) (any, error)
+	CreateGeofence(ctx context.Context, createGeofenceInput models.CreateGeofenceInput) (any, error)
+	UpdateGeofence(ctx context.Context, id int, updateGeofenceInput models.UpdateGeofenceInput) (any, error)
+	UpdateGeofenceByUUID(ctx context.Context, uuid uuid.UUID, updateGeofenceInput models.UpdateGeofenceInput) (any, error)
+	DeleteGeofence(ctx context.Context, id int) (any, error)
+	DeleteGeofenceByUUID(ctx context.Context, uuid uuid.UUID) (any, error)
 	CreateMarkerType(ctx context.Context, createMarkerTypeInput models.CreateMarkerTypeInput) (any, error)
 	UpdateMarkerType(ctx context.Context, id int, updateMarkerTypeInput models.UpdateMarkerTypeInput) (any, error)
 	UpdateMarkerTypeByUUID(ctx context.Context, uuid uuid.UUID, updateMarkerTypeInput *models.UpdateMarkerTypeInput) (any, error)
@@ -521,6 +535,10 @@ type QueryResolver interface {
 	GetOneDriveByUUID(ctx context.Context, uuid uuid.UUID) (any, error)
 	GetAllDrives(ctx context.Context) ([]any, error)
 	PageDrive(ctx context.Context, pageInput *models.PageInput) (*models.Pagination, error)
+	GetAllGeofences(ctx context.Context) (any, error)
+	GetOneGeofence(ctx context.Context, id int) (any, error)
+	GetOneGeofenceByUUID(ctx context.Context, uuid uuid.UUID) (any, error)
+	PageGeofence(ctx context.Context, pageInput *models.PageInput) (any, error)
 	GetOneMarkerType(ctx context.Context, id int) (any, error)
 	GetOneMarkerTypeByUUID(ctx context.Context, uuid uuid.UUID) (any, error)
 	GetAllMarkerTypes(ctx context.Context) ([]any, error)
@@ -1405,6 +1423,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Mutation.CreateDriver(childComplexity, args["createDriverInput"].(models.CreateDriverInput)), true
 
+	case "Mutation.CreateGeofence":
+		if e.complexity.Mutation.CreateGeofence == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_CreateGeofence_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateGeofence(childComplexity, args["createGeofenceInput"].(models.CreateGeofenceInput)), true
+
 	case "Mutation.CreateMarker":
 		if e.complexity.Mutation.CreateMarker == nil {
 			break
@@ -1620,6 +1650,30 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.DeleteDriverByUUID(childComplexity, args["uuid"].(uuid.UUID)), true
+
+	case "Mutation.DeleteGeofence":
+		if e.complexity.Mutation.DeleteGeofence == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_DeleteGeofence_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteGeofence(childComplexity, args["id"].(int)), true
+
+	case "Mutation.DeleteGeofenceByUuid":
+		if e.complexity.Mutation.DeleteGeofenceByUUID == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_DeleteGeofenceByUuid_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteGeofenceByUUID(childComplexity, args["uuid"].(uuid.UUID)), true
 
 	case "Mutation.DeleteMarker":
 		if e.complexity.Mutation.DeleteMarker == nil {
@@ -1944,6 +1998,30 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateDriverByUUID(childComplexity, args["uuid"].(uuid.UUID), args["updateDriverInput"].(models.UpdateDriverInput)), true
+
+	case "Mutation.UpdateGeofence":
+		if e.complexity.Mutation.UpdateGeofence == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateGeofence_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateGeofence(childComplexity, args["id"].(int), args["updateGeofenceInput"].(models.UpdateGeofenceInput)), true
+
+	case "Mutation.UpdateGeofenceByUuid":
+		if e.complexity.Mutation.UpdateGeofenceByUUID == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_UpdateGeofenceByUuid_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateGeofenceByUUID(childComplexity, args["uuid"].(uuid.UUID), args["updateGeofenceInput"].(models.UpdateGeofenceInput)), true
 
 	case "Mutation.UpdateMarker":
 		if e.complexity.Mutation.UpdateMarker == nil {
@@ -2422,6 +2500,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Query.GetAllDrives(childComplexity), true
 
+	case "Query.GetAllGeofences":
+		if e.complexity.Query.GetAllGeofences == nil {
+			break
+		}
+
+		return e.complexity.Query.GetAllGeofences(childComplexity), true
+
 	case "Query.GetAllMarkerTypes":
 		if e.complexity.Query.GetAllMarkerTypes == nil {
 			break
@@ -2647,6 +2732,30 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.GetOneDriverByUUID(childComplexity, args["uuid"].(uuid.UUID)), true
+
+	case "Query.GetOneGeofence":
+		if e.complexity.Query.GetOneGeofence == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetOneGeofence_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetOneGeofence(childComplexity, args["id"].(int)), true
+
+	case "Query.GetOneGeofenceByUuid":
+		if e.complexity.Query.GetOneGeofenceByUUID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_GetOneGeofenceByUuid_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.GetOneGeofenceByUUID(childComplexity, args["uuid"].(uuid.UUID)), true
 
 	case "Query.GetOneMarker":
 		if e.complexity.Query.GetOneMarker == nil {
@@ -2954,6 +3063,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.PageDriver(childComplexity, args["pageInput"].(*models.PageInput)), true
+
+	case "Query.PageGeofence":
+		if e.complexity.Query.PageGeofence == nil {
+			break
+		}
+
+		args, err := ec.field_Query_PageGeofence_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.PageGeofence(childComplexity, args["pageInput"].(*models.PageInput)), true
 
 	case "Query.PageMarker":
 		if e.complexity.Query.PageMarker == nil {
@@ -3452,6 +3573,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputCreateDeviceInput,
 		ec.unmarshalInputCreateDriveInput,
 		ec.unmarshalInputCreateDriverInput,
+		ec.unmarshalInputCreateGeofenceInput,
 		ec.unmarshalInputCreateMarkerInput,
 		ec.unmarshalInputCreateMarkerTypeInput,
 		ec.unmarshalInputCreateMenuInput,
@@ -3471,6 +3593,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputUpdateDeviceInput,
 		ec.unmarshalInputUpdateDriveInput,
 		ec.unmarshalInputUpdateDriverInput,
+		ec.unmarshalInputUpdateGeofenceInput,
 		ec.unmarshalInputUpdateMarkerInput,
 		ec.unmarshalInputUpdateMarkerTypeInput,
 		ec.unmarshalInputUpdateMenuInput,
@@ -3761,6 +3884,50 @@ extend type Query {
     GetOneDriveByUuid(uuid: UUID!): Any
     GetAllDrives: [Any]
     PageDrive(pageInput: PageInput): Pagination
+}`, BuiltIn: false},
+	{Name: "../domains/geofances/geofance.graphqls", Input: `# ─── Input Types ───────────────────────────────────────────
+
+input CreateGeofenceInput {
+  name: String!          @validate(required: true)
+  description: String
+  type: String!          # polygon | circle | line | rectangle
+  color: String
+  fillColor: String
+  strokeWidth: Int
+  geoType: String!       # Polygon | LineString | Point (GeoJSON)
+  coordinates: Any!      # Array koordinat GeoJSON
+  radius: Float
+  isActive: Boolean
+}
+
+input UpdateGeofenceInput {
+  name: String
+  description: String
+  type: String
+  color: String
+  fillColor: String
+  strokeWidth: Int
+  geoType: String
+  coordinates: Any
+  radius: Float
+  isActive: Boolean
+}
+
+# ─── Extend Query & Mutation (mengikuti pola extend yang ada) ──
+
+extend type Query {
+  GetAllGeofences: Any @auth
+  GetOneGeofence(id: Int!): Any @auth
+  GetOneGeofenceByUuid(uuid: UUID!): Any @auth
+  PageGeofence(pageInput: PageInput): Any @auth
+}
+
+extend type Mutation {
+  CreateGeofence(createGeofenceInput: CreateGeofenceInput!): Any @auth
+  UpdateGeofence(id: Int!, updateGeofenceInput: UpdateGeofenceInput!): Any @auth
+  UpdateGeofenceByUuid(uuid: UUID!, updateGeofenceInput: UpdateGeofenceInput!): Any @auth
+  DeleteGeofence(id: Int!): Any @auth
+  DeleteGeofenceByUuid(uuid: UUID!): Any @auth
 }`, BuiltIn: false},
 	{Name: "../domains/marker_types/marker_type.graphqls", Input: `type MarkerType {
   id: Int!
@@ -4572,6 +4739,29 @@ func (ec *executionContext) field_Mutation_CreateDriver_argsCreateDriverInput(
 	return zeroVal, nil
 }
 
+func (ec *executionContext) field_Mutation_CreateGeofence_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_CreateGeofence_argsCreateGeofenceInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["createGeofenceInput"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_CreateGeofence_argsCreateGeofenceInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (models.CreateGeofenceInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("createGeofenceInput"))
+	if tmp, ok := rawArgs["createGeofenceInput"]; ok {
+		return ec.unmarshalNCreateGeofenceInput2githubᚗcomᚋkhoirulhasinᚋuntirta_apiᚋappᚋmodelsᚐCreateGeofenceInput(ctx, tmp)
+	}
+
+	var zeroVal models.CreateGeofenceInput
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field_Mutation_CreateMarkerType_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -4974,6 +5164,52 @@ func (ec *executionContext) field_Mutation_DeleteDriver_args(ctx context.Context
 	return args, nil
 }
 func (ec *executionContext) field_Mutation_DeleteDriver_argsID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNInt2int(ctx, tmp)
+	}
+
+	var zeroVal int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_DeleteGeofenceByUuid_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_DeleteGeofenceByUuid_argsUUID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["uuid"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_DeleteGeofenceByUuid_argsUUID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (uuid.UUID, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+	if tmp, ok := rawArgs["uuid"]; ok {
+		return ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+	}
+
+	var zeroVal uuid.UUID
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_DeleteGeofence_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_DeleteGeofence_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_DeleteGeofence_argsID(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (int, error) {
@@ -5748,6 +5984,88 @@ func (ec *executionContext) field_Mutation_UpdateDriver_argsUpdateDriverInput(
 	}
 
 	var zeroVal models.UpdateDriverInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_UpdateGeofenceByUuid_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_UpdateGeofenceByUuid_argsUUID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["uuid"] = arg0
+	arg1, err := ec.field_Mutation_UpdateGeofenceByUuid_argsUpdateGeofenceInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["updateGeofenceInput"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_UpdateGeofenceByUuid_argsUUID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (uuid.UUID, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+	if tmp, ok := rawArgs["uuid"]; ok {
+		return ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+	}
+
+	var zeroVal uuid.UUID
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_UpdateGeofenceByUuid_argsUpdateGeofenceInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (models.UpdateGeofenceInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("updateGeofenceInput"))
+	if tmp, ok := rawArgs["updateGeofenceInput"]; ok {
+		return ec.unmarshalNUpdateGeofenceInput2githubᚗcomᚋkhoirulhasinᚋuntirta_apiᚋappᚋmodelsᚐUpdateGeofenceInput(ctx, tmp)
+	}
+
+	var zeroVal models.UpdateGeofenceInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_UpdateGeofence_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Mutation_UpdateGeofence_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	arg1, err := ec.field_Mutation_UpdateGeofence_argsUpdateGeofenceInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["updateGeofenceInput"] = arg1
+	return args, nil
+}
+func (ec *executionContext) field_Mutation_UpdateGeofence_argsID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNInt2int(ctx, tmp)
+	}
+
+	var zeroVal int
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Mutation_UpdateGeofence_argsUpdateGeofenceInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (models.UpdateGeofenceInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("updateGeofenceInput"))
+	if tmp, ok := rawArgs["updateGeofenceInput"]; ok {
+		return ec.unmarshalNUpdateGeofenceInput2githubᚗcomᚋkhoirulhasinᚋuntirta_apiᚋappᚋmodelsᚐUpdateGeofenceInput(ctx, tmp)
+	}
+
+	var zeroVal models.UpdateGeofenceInput
 	return zeroVal, nil
 }
 
@@ -7034,6 +7352,52 @@ func (ec *executionContext) field_Query_GetOneDriver_argsID(
 	return zeroVal, nil
 }
 
+func (ec *executionContext) field_Query_GetOneGeofenceByUuid_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_GetOneGeofenceByUuid_argsUUID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["uuid"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_GetOneGeofenceByUuid_argsUUID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (uuid.UUID, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("uuid"))
+	if tmp, ok := rawArgs["uuid"]; ok {
+		return ec.unmarshalNUUID2githubᚗcomᚋgoogleᚋuuidᚐUUID(ctx, tmp)
+	}
+
+	var zeroVal uuid.UUID
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_GetOneGeofence_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_GetOneGeofence_argsID(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_GetOneGeofence_argsID(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (int, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+	if tmp, ok := rawArgs["id"]; ok {
+		return ec.unmarshalNInt2int(ctx, tmp)
+	}
+
+	var zeroVal int
+	return zeroVal, nil
+}
+
 func (ec *executionContext) field_Query_GetOneMarkerByUuid_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -7615,6 +7979,29 @@ func (ec *executionContext) field_Query_PageDriver_args(ctx context.Context, raw
 	return args, nil
 }
 func (ec *executionContext) field_Query_PageDriver_argsPageInput(
+	ctx context.Context,
+	rawArgs map[string]any,
+) (*models.PageInput, error) {
+	ctx = graphql.WithPathContext(ctx, graphql.NewPathWithField("pageInput"))
+	if tmp, ok := rawArgs["pageInput"]; ok {
+		return ec.unmarshalOPageInput2ᚖgithubᚗcomᚋkhoirulhasinᚋuntirta_apiᚋappᚋmodelsᚐPageInput(ctx, tmp)
+	}
+
+	var zeroVal *models.PageInput
+	return zeroVal, nil
+}
+
+func (ec *executionContext) field_Query_PageGeofence_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := ec.field_Query_PageGeofence_argsPageInput(ctx, rawArgs)
+	if err != nil {
+		return nil, err
+	}
+	args["pageInput"] = arg0
+	return args, nil
+}
+func (ec *executionContext) field_Query_PageGeofence_argsPageInput(
 	ctx context.Context,
 	rawArgs map[string]any,
 ) (*models.PageInput, error) {
@@ -14315,6 +14702,376 @@ func (ec *executionContext) fieldContext_Mutation_DeleteDriveByUuid(ctx context.
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_CreateGeofence(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_CreateGeofence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateGeofence(rctx, fc.Args["createGeofenceInput"].(models.CreateGeofenceInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal any
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(any); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be any`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(any)
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_CreateGeofence(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_CreateGeofence_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_UpdateGeofence(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_UpdateGeofence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateGeofence(rctx, fc.Args["id"].(int), fc.Args["updateGeofenceInput"].(models.UpdateGeofenceInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal any
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(any); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be any`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(any)
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_UpdateGeofence(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_UpdateGeofence_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_UpdateGeofenceByUuid(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_UpdateGeofenceByUuid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateGeofenceByUUID(rctx, fc.Args["uuid"].(uuid.UUID), fc.Args["updateGeofenceInput"].(models.UpdateGeofenceInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal any
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(any); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be any`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(any)
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_UpdateGeofenceByUuid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_UpdateGeofenceByUuid_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_DeleteGeofence(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_DeleteGeofence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteGeofence(rctx, fc.Args["id"].(int))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal any
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(any); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be any`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(any)
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_DeleteGeofence(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_DeleteGeofence_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_DeleteGeofenceByUuid(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_DeleteGeofenceByUuid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteGeofenceByUUID(rctx, fc.Args["uuid"].(uuid.UUID))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal any
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(any); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be any`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(any)
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_DeleteGeofenceByUuid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_DeleteGeofenceByUuid_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Mutation_CreateMarkerType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Mutation_CreateMarkerType(ctx, field)
 	if err != nil {
@@ -20825,6 +21582,291 @@ func (ec *executionContext) fieldContext_Query_PageDrive(ctx context.Context, fi
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_PageDrive_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetAllGeofences(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetAllGeofences(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().GetAllGeofences(rctx)
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal any
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(any); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be any`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(any)
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetAllGeofences(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetOneGeofence(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetOneGeofence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().GetOneGeofence(rctx, fc.Args["id"].(int))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal any
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(any); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be any`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(any)
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetOneGeofence(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetOneGeofence_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_GetOneGeofenceByUuid(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_GetOneGeofenceByUuid(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().GetOneGeofenceByUUID(rctx, fc.Args["uuid"].(uuid.UUID))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal any
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(any); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be any`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(any)
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_GetOneGeofenceByUuid(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_GetOneGeofenceByUuid_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_PageGeofence(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_PageGeofence(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		directive0 := func(rctx context.Context) (any, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().PageGeofence(rctx, fc.Args["pageInput"].(*models.PageInput))
+		}
+
+		directive1 := func(ctx context.Context) (any, error) {
+			if ec.directives.Auth == nil {
+				var zeroVal any
+				return zeroVal, errors.New("directive auth is not implemented")
+			}
+			return ec.directives.Auth(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(any); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be any`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(any)
+	fc.Result = res
+	return ec.marshalOAny2interface(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_PageGeofence(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Any does not have child fields")
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_PageGeofence_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -28597,6 +29639,136 @@ func (ec *executionContext) unmarshalInputCreateDriverInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCreateGeofenceInput(ctx context.Context, obj any) (models.CreateGeofenceInput, error) {
+	var it models.CreateGeofenceInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "type", "color", "fillColor", "strokeWidth", "geoType", "coordinates", "radius", "isActive"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			directive0 := func(ctx context.Context) (any, error) { return ec.unmarshalNString2string(ctx, v) }
+
+			directive1 := func(ctx context.Context) (any, error) {
+				required, err := ec.unmarshalOBoolean2ᚖbool(ctx, true)
+				if err != nil {
+					var zeroVal string
+					return zeroVal, err
+				}
+				email, err := ec.unmarshalOBoolean2ᚖbool(ctx, false)
+				if err != nil {
+					var zeroVal string
+					return zeroVal, err
+				}
+				username, err := ec.unmarshalOBoolean2ᚖbool(ctx, false)
+				if err != nil {
+					var zeroVal string
+					return zeroVal, err
+				}
+				password, err := ec.unmarshalOBoolean2ᚖbool(ctx, false)
+				if err != nil {
+					var zeroVal string
+					return zeroVal, err
+				}
+				integer, err := ec.unmarshalOBoolean2ᚖbool(ctx, false)
+				if err != nil {
+					var zeroVal string
+					return zeroVal, err
+				}
+				if ec.directives.Validate == nil {
+					var zeroVal string
+					return zeroVal, errors.New("directive validate is not implemented")
+				}
+				return ec.directives.Validate(ctx, obj, directive0, required, email, username, password, integer)
+			}
+
+			tmp, err := directive1(ctx)
+			if err != nil {
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+			if data, ok := tmp.(string); ok {
+				it.Name = data
+			} else {
+				err := fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+				return it, graphql.ErrorOnPath(ctx, err)
+			}
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		case "color":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("color"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Color = data
+		case "fillColor":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fillColor"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FillColor = data
+		case "strokeWidth":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("strokeWidth"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StrokeWidth = data
+		case "geoType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("geoType"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GeoType = data
+		case "coordinates":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("coordinates"))
+			data, err := ec.unmarshalNAny2interface(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Coordinates = data
+		case "radius":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("radius"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Radius = data
+		case "isActive":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isActive"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsActive = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateMarkerInput(ctx context.Context, obj any) (models.CreateMarkerInput, error) {
 	var it models.CreateMarkerInput
 	asMap := map[string]any{}
@@ -30910,6 +32082,96 @@ func (ec *executionContext) unmarshalInputUpdateDriverInput(ctx context.Context,
 				return it, err
 			}
 			it.Address = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputUpdateGeofenceInput(ctx context.Context, obj any) (models.UpdateGeofenceInput, error) {
+	var it models.UpdateGeofenceInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"name", "description", "type", "color", "fillColor", "strokeWidth", "geoType", "coordinates", "radius", "isActive"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "name":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Name = data
+		case "description":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Description = data
+		case "type":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("type"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Type = data
+		case "color":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("color"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Color = data
+		case "fillColor":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fillColor"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FillColor = data
+		case "strokeWidth":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("strokeWidth"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StrokeWidth = data
+		case "geoType":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("geoType"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GeoType = data
+		case "coordinates":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("coordinates"))
+			data, err := ec.unmarshalOAny2interface(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Coordinates = data
+		case "radius":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("radius"))
+			data, err := ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Radius = data
+		case "isActive":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("isActive"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IsActive = data
 		}
 	}
 
@@ -33242,6 +34504,26 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_DeleteDriveByUuid(ctx, field)
 			})
+		case "CreateGeofence":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_CreateGeofence(ctx, field)
+			})
+		case "UpdateGeofence":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_UpdateGeofence(ctx, field)
+			})
+		case "UpdateGeofenceByUuid":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_UpdateGeofenceByUuid(ctx, field)
+			})
+		case "DeleteGeofence":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_DeleteGeofence(ctx, field)
+			})
+		case "DeleteGeofenceByUuid":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_DeleteGeofenceByUuid(ctx, field)
+			})
 		case "CreateMarkerType":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_CreateMarkerType(ctx, field)
@@ -33962,6 +35244,82 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_PageDrive(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetAllGeofences":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetAllGeofences(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetOneGeofence":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetOneGeofence(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "GetOneGeofenceByUuid":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_GetOneGeofenceByUuid(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "PageGeofence":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_PageGeofence(ctx, field)
 				return res
 			}
 
@@ -35687,6 +37045,11 @@ func (ec *executionContext) unmarshalNCreateDriverInput2githubᚗcomᚋkhoirulha
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNCreateGeofenceInput2githubᚗcomᚋkhoirulhasinᚋuntirta_apiᚋappᚋmodelsᚐCreateGeofenceInput(ctx context.Context, v any) (models.CreateGeofenceInput, error) {
+	res, err := ec.unmarshalInputCreateGeofenceInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateMarkerInput2githubᚗcomᚋkhoirulhasinᚋuntirta_apiᚋappᚋmodelsᚐCreateMarkerInput(ctx context.Context, v any) (models.CreateMarkerInput, error) {
 	res, err := ec.unmarshalInputCreateMarkerInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -36052,6 +37415,11 @@ func (ec *executionContext) unmarshalNUpdateDriveInput2githubᚗcomᚋkhoirulhas
 
 func (ec *executionContext) unmarshalNUpdateDriverInput2githubᚗcomᚋkhoirulhasinᚋuntirta_apiᚋappᚋmodelsᚐUpdateDriverInput(ctx context.Context, v any) (models.UpdateDriverInput, error) {
 	res, err := ec.unmarshalInputUpdateDriverInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateGeofenceInput2githubᚗcomᚋkhoirulhasinᚋuntirta_apiᚋappᚋmodelsᚐUpdateGeofenceInput(ctx context.Context, v any) (models.UpdateGeofenceInput, error) {
+	res, err := ec.unmarshalInputUpdateGeofenceInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
@@ -36493,6 +37861,23 @@ func (ec *executionContext) unmarshalOFilterInput2ᚕᚖgithubᚗcomᚋkhoirulha
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v any) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloatContext(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	res := graphql.MarshalFloatContext(*v)
+	return graphql.WrapContextMarshaler(ctx, res)
 }
 
 func (ec *executionContext) unmarshalOInt2ᚕᚖint(ctx context.Context, v any) ([]*int, error) {

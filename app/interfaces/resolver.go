@@ -5,6 +5,7 @@ import (
 	"github.com/khoirulhasin/untirta_api/app/domains/devices"
 	"github.com/khoirulhasin/untirta_api/app/domains/drivers"
 	"github.com/khoirulhasin/untirta_api/app/domains/drives"
+	geofences "github.com/khoirulhasin/untirta_api/app/domains/geofances"
 	"github.com/khoirulhasin/untirta_api/app/domains/marker_types"
 	"github.com/khoirulhasin/untirta_api/app/domains/markers"
 	"github.com/khoirulhasin/untirta_api/app/domains/menus"
@@ -36,4 +37,5 @@ type Resolver struct {
 	MarkerTypeRepository marker_types.MarkerTypeRepository
 	ShipMongodistory     ships.ShipMongodistory
 	ShipMongotory        ships.ShipMongotory
+	GeofenceRepository   geofences.GeofenceRepository
 }

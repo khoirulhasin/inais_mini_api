@@ -58,6 +58,19 @@ type CreateDriverInput struct {
 	Address          *string `json:"address,omitempty" gorm:"column:address"`
 }
 
+type CreateGeofenceInput struct {
+	Name        string   `json:"name" gorm:"index:idx_creategeofenceinput_name;column:name"`
+	Description *string  `json:"description,omitempty" gorm:"column:description"`
+	Type        string   `json:"type" gorm:"column:type"`
+	Color       *string  `json:"color,omitempty" gorm:"column:color"`
+	FillColor   *string  `json:"fillColor,omitempty" gorm:"column:fill_color"`
+	StrokeWidth *int     `json:"strokeWidth,omitempty" gorm:"column:stroke_width"`
+	GeoType     string   `json:"geoType" gorm:"column:geo_type"`
+	Coordinates any      `json:"coordinates" gorm:"column:coordinates"`
+	Radius      *float64 `json:"radius,omitempty" gorm:"column:radius"`
+	IsActive    *bool    `json:"isActive,omitempty" gorm:"column:is_active"`
+}
+
 type CreateMarkerInput struct {
 	Title        string             `json:"title" gorm:"column:title"`
 	Lat          float64            `json:"lat" gorm:"column:lat"`
@@ -366,6 +379,19 @@ type UpdateDriverInput struct {
 	Name             string  `json:"name" gorm:"index:idx_updatedriverinput_name;column:name"`
 	NumberIdentifier string  `json:"numberIdentifier" gorm:"column:number_identifier"`
 	Address          *string `json:"address,omitempty" gorm:"column:address"`
+}
+
+type UpdateGeofenceInput struct {
+	Name        *string  `json:"name,omitempty" gorm:"index:idx_updategeofenceinput_name;column:name"`
+	Description *string  `json:"description,omitempty" gorm:"column:description"`
+	Type        *string  `json:"type,omitempty" gorm:"column:type"`
+	Color       *string  `json:"color,omitempty" gorm:"column:color"`
+	FillColor   *string  `json:"fillColor,omitempty" gorm:"column:fill_color"`
+	StrokeWidth *int     `json:"strokeWidth,omitempty" gorm:"column:stroke_width"`
+	GeoType     *string  `json:"geoType,omitempty" gorm:"column:geo_type"`
+	Coordinates any      `json:"coordinates,omitempty" gorm:"column:coordinates"`
+	Radius      *float64 `json:"radius,omitempty" gorm:"column:radius"`
+	IsActive    *bool    `json:"isActive,omitempty" gorm:"column:is_active"`
 }
 
 type UpdateMarkerInput struct {

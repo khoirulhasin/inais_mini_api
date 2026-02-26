@@ -1,0 +1,44 @@
+# ─── Input Types ───────────────────────────────────────────
+
+input CreateGeofenceInput {
+  name: String!          @validate(required: true)
+  description: String
+  type: String!          # polygon | circle | line | rectangle
+  color: String
+  fillColor: String
+  strokeWidth: Int
+  geoType: String!       # Polygon | LineString | Point (GeoJSON)
+  coordinates: Any!      # Array koordinat GeoJSON
+  radius: Float
+  isActive: Boolean
+}
+
+input UpdateGeofenceInput {
+  name: String
+  description: String
+  type: String
+  color: String
+  fillColor: String
+  strokeWidth: Int
+  geoType: String
+  coordinates: Any
+  radius: Float
+  isActive: Boolean
+}
+
+# ─── Extend Query & Mutation (mengikuti pola extend yang ada) ──
+
+extend type Query {
+  GetAllGeofences: Any @auth
+  GetOneGeofence(id: Int!): Any @auth
+  GetOneGeofenceByUuid(uuid: UUID!): Any @auth
+  PageGeofence(pageInput: PageInput): Any @auth
+}
+
+extend type Mutation {
+  CreateGeofence(createGeofenceInput: CreateGeofenceInput!): Any @auth
+  UpdateGeofence(id: Int!, updateGeofenceInput: UpdateGeofenceInput!): Any @auth
+  UpdateGeofenceByUuid(uuid: UUID!, updateGeofenceInput: UpdateGeofenceInput!): Any @auth
+  DeleteGeofence(id: Int!): Any @auth
+  DeleteGeofenceByUuid(uuid: UUID!): Any @auth
+}

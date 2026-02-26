@@ -15,6 +15,7 @@ import (
 	"github.com/khoirulhasin/untirta_api/app/domains/devices"
 	"github.com/khoirulhasin/untirta_api/app/domains/drivers"
 	"github.com/khoirulhasin/untirta_api/app/domains/drives"
+	geofences "github.com/khoirulhasin/untirta_api/app/domains/geofances"
 	"github.com/khoirulhasin/untirta_api/app/domains/marker_types"
 	"github.com/khoirulhasin/untirta_api/app/domains/markers"
 	"github.com/khoirulhasin/untirta_api/app/domains/menus"
@@ -73,6 +74,7 @@ func Init(r *gin.Engine) http.Handler {
 	driveRepository := drives.NewDriveRepository(connPostgres)
 	camRepository := cams.NewCamRepository(connPostgres)
 	markerTypeRepository := marker_types.NewMarkerTypeRepository(connPostgres)
+	geofenceRepository := geofences.NewGeofenceRepository(connPostgres)
 	shipMongodistory := ships.NewShipMongodistory(connMongodis)
 	shipMongotory := ships.NewShipMongotory(connMongo)
 
@@ -98,6 +100,7 @@ func Init(r *gin.Engine) http.Handler {
 			DriveRepository:      driveRepository,
 			CamRepository:        camRepository,
 			MarkerTypeRepository: markerTypeRepository,
+			GeofenceRepository:   geofenceRepository,
 			ShipMongodistory:     shipMongodistory,
 			ShipMongotory:        shipMongotory,
 		},
